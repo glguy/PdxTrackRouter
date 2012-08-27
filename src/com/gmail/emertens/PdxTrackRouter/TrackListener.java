@@ -3,7 +3,6 @@ package com.gmail.emertens.PdxTrackRouter;
 import java.util.ArrayList;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -34,27 +33,19 @@ public class TrackListener implements Listener {
 	@EventHandler(ignoreCancelled=true)
 	public void onEvent(VehicleMoveEvent event) {
 		
-		Location from = event.getFrom();
-		Location to   = event.getTo();
-		
+		Block from = event.getFrom().getBlock();
+		Block to   = event.getTo().getBlock();
+
 		// Skip move events inside the same block
-		if (from.getBlockX() == to.getBlockX()
-				&& from.getBlockY() == to.getBlockY()
-				&& from.getBlockZ() == to.getBlockZ())
-			return;
+		if (from == to) return;
 	
 		// Skip move events where a player is not riding
 		Entity passenger = event.getVehicle().getPassenger();
 		if (! (passenger instanceof Player)) return;
 		Player player = (Player)passenger;
 		
-		// Compute the next block the car will arrive at
-		int bx = to.getBlockX() - from.getBlockX() + to.getBlockX();
-		int by = to.getBlockY() - from.getBlockY() + to.getBlockY();
-		int bz = to.getBlockZ() - from.getBlockZ() + to.getBlockZ();
-		
-		Block block = to.getWorld().getBlockAt(bx,by,bz);
-		BlockFace direction = to.getBlock().getFace(block);
+		BlockFace direction = from.getFace(to);
+		Block block = to.getRelative(direction);
 		
 		// Only check when arriving at a rails block
 		if (block.getType() != Material.RAILS) return;
@@ -68,12 +59,12 @@ public class TrackListener implements Listener {
 			Material m = neighbor.getType();
 			if (m == Material.RAILS || m == Material.POWERED_RAIL) {
 				continue;
-			} else if (openEnd == null && neighbor.getState() instanceof Sign) {
+			} else if (openEnd == null) {
 				openEnd = d;
 				lines = collectJunctionSignLines(neighbor);
-				if (lines == null) return;
-				if (!lines[0].equalsIgnoreCase("[junction]")) return;
+				if (lines.length == 0 || !lines[0].equalsIgnoreCase("[junction]")) return;
 			} else {
+				// Abort as soon as we don't find rails or a sign
 				return;
 			}
 		}
