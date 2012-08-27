@@ -99,6 +99,33 @@ public class PdxTrackRouter extends JavaPlugin {
 		final String prefix = destination.toLowerCase() + ":";
 		final String defaultPrefix = DEFAULT_DESTINATION + ":";
 
+		final BlockFace wellKnown = findWellKnownDestination(destination);
+		if (wellKnown != null) return wellKnown;
+
+		for (int i = 1; i < lines.length; i++) {
+			final String current = lines[i].toLowerCase();
+			final int prefixLength;
+
+			if (current.startsWith(prefix)) {
+				prefixLength = prefix.length();
+			} else if (current.startsWith(defaultPrefix)) {
+				prefixLength = defaultPrefix.length();
+			} else {
+				continue;
+			}
+
+			final String directionPart = current.substring(prefixLength).trim();
+			final BlockFace dir = BlockFaceUtils.charToDirection(directionPart);
+
+			// Ignore invalid and unusable routes
+			if (dir == null || dir == BlockFaceUtils.opposite(direction)) continue;
+
+			return dir;
+		}
+		return null;
+	}
+
+	private static BlockFace findWellKnownDestination(String destination) {
 		if (destination.equalsIgnoreCase("north")) {
 			return BlockFace.EAST;
 		} else if (destination.equalsIgnoreCase("east")) {
@@ -107,27 +134,10 @@ public class PdxTrackRouter extends JavaPlugin {
 			return BlockFace.WEST;
 		} else if (destination.equalsIgnoreCase("west")) {
 			return BlockFace.NORTH;
+		} else {
+			return null;
 		}
-
-		for (int i = 1; i < lines.length; i++) {
-			final String current = lines[i].toLowerCase();
-			final String str;
-			final BlockFace dir;
-			if (current.startsWith(prefix)) {
-				str = current.substring(prefix.length());
-			} else if (current.startsWith(defaultPrefix)) {
-				str = current.substring(defaultPrefix.length());
-			} else {
-				continue;
-			}
-			dir = BlockFaceUtils.charToDirection(str.trim());
-			if (dir == null) continue;
-			if (dir == BlockFaceUtils.opposite(direction)) continue;
-			return dir;
-		}
-		return null;
 	}
-
 
 	/**
 	 * Compute the new direction a track should face
