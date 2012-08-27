@@ -75,7 +75,7 @@ public class PdxTrackRouter extends JavaPlugin {
 	 */
 	public void updateJunction(Player player, Block block, BlockFace traveling, BlockFace open, String[] lines) {
 		String destination = playerToDestination(player);
-		BlockFace target = findDestination(destination, lines);
+		BlockFace target = findDestination(destination, lines, traveling);
 		if (target == null) {
 			if (traveling != open) {
 				target = traveling;
@@ -92,9 +92,10 @@ public class PdxTrackRouter extends JavaPlugin {
 	 * Find a target direction given a junction sign line array and a destination name.
 	 * @param destination Destination label to search for
 	 * @param lines Lines of sign to search in
+	 * @param direction
 	 * @return first matching direction or first default direction
 	 */
-	private static BlockFace findDestination(String destination, String[] lines) {
+	private static BlockFace findDestination(String destination, String[] lines, BlockFace direction) {
 		final String prefix = destination.toLowerCase() + ":";
 		final String defaultPrefix = DEFAULT_DESTINATION + ":";
 
@@ -111,7 +112,7 @@ public class PdxTrackRouter extends JavaPlugin {
 		for (int i = 1; i < lines.length; i++) {
 			final String current = lines[i].toLowerCase();
 			final String str;
-
+			final BlockFace dir;
 			if (current.startsWith(prefix)) {
 				str = current.substring(prefix.length());
 			} else if (current.startsWith(defaultPrefix)) {
@@ -119,8 +120,9 @@ public class PdxTrackRouter extends JavaPlugin {
 			} else {
 				continue;
 			}
-
-			return BlockFaceUtils.charToDirection(str.trim());
+			dir = BlockFaceUtils.charToDirection(str.trim());
+			if (dir == BlockFaceUtils.opposite(direction)) continue;
+			return dir;
 		}
 		return null;
 	}
@@ -172,13 +174,14 @@ public class PdxTrackRouter extends JavaPlugin {
 	 */
 	public void updateFourWay(Player player, Block block, BlockFace direction, String[] lines) {
 		String destination = playerToDestination(player);
-		BlockFace target = findDestination(destination, lines);
+		BlockFace target = findDestination(destination, lines, direction);
 		BlockFace newDirection;
 		if (target == null) {
 			newDirection = direction;
 		} else {
 			newDirection = computeFourWayJunction(direction, target);
 		}
+
 		setRailDirection(block, newDirection);
 	}
 
@@ -212,8 +215,10 @@ public class PdxTrackRouter extends JavaPlugin {
 	}
 
 	public void clearPlayerDestination(Player player) {
-		playerTargets.remove(player.getName());
-		player.sendMessage(ChatColor.GREEN + "Destination cleared");
+		if (playerTargets.containsKey(player.getName())) {
+			playerTargets.remove(player.getName());
+			player.sendMessage(ChatColor.GREEN + "Destination cleared");
+		}
 	}
 
 	public void setPlayerDestination(Player player, String destination) {
