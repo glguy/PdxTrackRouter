@@ -57,11 +57,6 @@ public class TrackListener implements Listener {
 		// Skip move events inside the same block
 		if (direction == BlockFace.SELF) return;
 
-		// Skip move events where a player is not riding
-		Entity passenger = event.getVehicle().getPassenger();
-		if (! (passenger instanceof Player)) return;
-		Player player = (Player)passenger;
-
 		Block block = to.getRelative(direction);
 
 		// Only check when arriving at a rails block
@@ -86,6 +81,14 @@ public class TrackListener implements Listener {
 				// Abort as soon as we don't find rails or a sign
 				return;
 			}
+		}
+
+		Entity passenger = event.getVehicle().getPassenger();
+		final Player player;
+		if (passenger instanceof Player) {
+			player = (Player)passenger;
+		} else {
+			player = null;
 		}
 
 		// Notify the plug-in

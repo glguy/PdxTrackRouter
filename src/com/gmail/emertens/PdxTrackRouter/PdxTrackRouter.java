@@ -22,6 +22,7 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public class PdxTrackRouter extends JavaPlugin {
 
+	private static final String EMPTY_DESTINATION = "empty";
 	private static final String DEFAULT_DESTINATION = "default";
 	private static String DESTINATION_HEADER = "[destination]";
 	private static String JUNCTION_HEADER = "[junction]";
@@ -73,10 +74,7 @@ public class PdxTrackRouter extends JavaPlugin {
 	 * @param lines The concatenated lines of the junction sign stack
 	 */
 	public void updateJunction(Player player, Block block, BlockFace traveling, BlockFace open, String[] lines) {
-
-		String destination = playerTargets.get(player.getName());
-		if (destination == null) destination = DEFAULT_DESTINATION;
-
+		String destination = playerToDestination(player);
 		BlockFace target = findDestination(destination, lines);
 		if (target == null) return;
 
@@ -156,12 +154,24 @@ public class PdxTrackRouter extends JavaPlugin {
 	 * @param direction Direction player is traveling
 	 */
 	public void updateFourWay(Player player, Block block, BlockFace direction, String[] lines) {
-		String destination = playerTargets.get(player.getName());
-		if (destination == null) destination = DEFAULT_DESTINATION;
+		String destination = playerToDestination(player);
 		BlockFace target = findDestination(destination, lines);
 		if (target == null) return;
 		BlockFace newDirection = computeFourWayJunction(direction, target);
 		setRailDirection(block, newDirection);
+	}
+
+	private String playerToDestination(Player player) {
+		String destination;
+		if (player != null) {
+			destination = playerTargets.get(player.getName());
+			if (destination == null) {
+				destination = DEFAULT_DESTINATION;
+			}
+		} else {
+			destination = EMPTY_DESTINATION;
+		}
+		return destination;
 	}
 
 	/**
