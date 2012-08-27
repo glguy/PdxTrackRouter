@@ -5,6 +5,6 @@ description: Automatically route minecarts down tracks.
 authors: [emertens]
 
 commands:
-  junction:
-    description: set junction target
+  destination:
+    description: Set junction target
     usage: /<command> [DIRECTION]

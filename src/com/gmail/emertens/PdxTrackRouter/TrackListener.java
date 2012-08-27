@@ -23,7 +23,6 @@ import org.bukkit.event.Listener;
  */
 public class TrackListener implements Listener {
 
-	private static final String JUNCTION_HEADER = "[junction]";
 	private static BlockFace[] cardinalDirections
 	  = new BlockFace[] {BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH};
 	private static BlockFace[] combinedDirections
@@ -32,13 +31,16 @@ public class TrackListener implements Listener {
 	private static BlockFace signStackDirection = BlockFace.UP;
 
 	private PdxTrackRouter plugin;
+	private String junctionHeader;
 
 	/**
 	 * Construct a new TrackListener
 	 * @param p The plug-in to notify when a junction is approached
+	 * @param header
 	 */
-	public TrackListener(PdxTrackRouter p) {
+	public TrackListener(PdxTrackRouter p, String header) {
 		plugin = p;
+		junctionHeader = header;
 	}
 
 	/**
@@ -79,7 +81,7 @@ public class TrackListener implements Listener {
 			} else if (openEnd == null) {
 				openEnd = d;
 				lines = collectJunctionSignLines(neighbor);
-				if (lines.length == 0 || !lines[0].equalsIgnoreCase(JUNCTION_HEADER)) return;
+				if (lines.length == 0 || !lines[0].equalsIgnoreCase(junctionHeader)) return;
 			} else {
 				// Abort as soon as we don't find rails or a sign
 				return;
