@@ -16,44 +16,58 @@ import org.bukkit.event.Listener;
 
 /**
  * This listener catches vehicle move events which correspond arriving at a junction
- * and notifies the plugin when one is found.
+ * and notifies the plug-in when one is found.
  * @author Eric Mertens
  *
  */
 public class TrackListener implements Listener {
-	
-	private PdxTrackRouter plugin;
+
+	private static final String JUNCTION_HEADER = "[junction]";
 	private static BlockFace[] cardinalDirections
-	  = new BlockFace[] {BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH}; 
-	
+	  = new BlockFace[] {BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH};
+	private static BlockFace signStackDirection = BlockFace.UP;
+
+	private PdxTrackRouter plugin;
+
+	/**
+	 * Construct a new TrackListener
+	 * @param p The plug-in to notify when a junction is approached
+	 */
 	public TrackListener(PdxTrackRouter p) {
 		plugin = p;
 	}
-		
+
+	/**
+	 * Notify the plug-in when a player is approaching a properly
+	 * configured junction.
+	 * @param event
+	 */
 	@EventHandler(ignoreCancelled=true)
 	public void onEvent(VehicleMoveEvent event) {
-		
+
 		Block from = event.getFrom().getBlock();
 		Block to   = event.getTo().getBlock();
 
 		// Skip move events inside the same block
 		if (from == to) return;
-	
+
 		// Skip move events where a player is not riding
 		Entity passenger = event.getVehicle().getPassenger();
 		if (! (passenger instanceof Player)) return;
 		Player player = (Player)passenger;
-		
+
 		BlockFace direction = from.getFace(to);
 		Block block = to.getRelative(direction);
-		
+
 		// Only check when arriving at a rails block
 		if (block.getType() != Material.RAILS) return;
 
 		// Check that this is a 3-way intersection with a junction sign
 		BlockFace openEnd = null;
 		String[] lines = null;
-		
+
+		// Verify that this block's neighbors are all rails
+		// or a junction sign stack, but nothing else.
 		for (BlockFace d : cardinalDirections) {
 			Block neighbor = block.getRelative(d);
 			Material m = neighbor.getType();
@@ -62,36 +76,37 @@ public class TrackListener implements Listener {
 			} else if (openEnd == null) {
 				openEnd = d;
 				lines = collectJunctionSignLines(neighbor);
-				if (lines.length == 0 || !lines[0].equalsIgnoreCase("[junction]")) return;
+				if (lines.length == 0 || !lines[0].equalsIgnoreCase(JUNCTION_HEADER)) return;
 			} else {
 				// Abort as soon as we don't find rails or a sign
 				return;
 			}
 		}
-		
+
 		// Notify the plug-in
 		plugin.updateJunction(player, block, direction, openEnd, lines);
 	}
 
+	/**
+	 * Collect the concatenated lines from a stack of signs
+	 * @param block The base of the potential stack of signs
+	 * @return An array of the lines of the sign stack
+	 */
 	private static String[] collectJunctionSignLines(Block block) {
-		ArrayList<String> stack = new ArrayList<String>();
-		
+		final ArrayList<String> stack = new ArrayList<String>();
+
 		// Search upwards collecting all the sign lines
-		while(true) {
-			BlockState state = block.getState();
-			
-			if (state instanceof Sign) {
-				Sign sign = (Sign)state;
-				String[] lines = sign.getLines();
-				for (int i = 3; i >= 0; i--) {
-					stack.add(lines[i]);
-				}
-				block = block.getRelative(BlockFace.UP);
-			} else {
-				break;
+		BlockState state;
+		while((state = block.getState()) instanceof Sign) {
+			Sign sign = (Sign)state;
+			String[] lines = sign.getLines();
+			for (int i = lines.length - 1; i >= 0; i--) {
+				stack.add(lines[i]);
 			}
+			block = block.getRelative(signStackDirection);
 		}
-		String[] result = stack.toArray(new String[]{});
+
+		final String[] result = stack.toArray(new String[]{});
 		ArrayUtils.reverse(result);
 		return result;
 	}
