@@ -83,24 +83,9 @@ public class PdxTrackRouter extends JavaPlugin {
 		BlockFace target = findDestination(destination, lines);
 		if (target == null) return;
 		
-		BlockState state = block.getState();
-		Rails rails = (Rails)state.getData();
 		BlockFace newDirection = computeJunction(traveling, open, target);
-		
-		if (newDirection != null) {
-			rails.setDirection(newDirection, false);
-			state.setData(rails);
-			state.update();
-		}
+		setRailDirection(block, newDirection);
 	} 
-
-	private static void passthroughJunction(Block block, BlockFace traveling) {
-		BlockState state = block.getState();
-		Rails rails = (Rails)state.getData();
-		rails.setDirection(traveling, false);
-		state.setData(rails);
-		state.update();
-	}
 
 	/**
 	 * Find a target direction given a junction sign line array and a destination name.
@@ -146,7 +131,7 @@ public class PdxTrackRouter extends JavaPlugin {
 	 * @param target The direction the player wants to go
 	 * @return The direction the track should be changed to
 	 */
-	public static BlockFace computeJunction(BlockFace traveling, BlockFace open, BlockFace target) {
+	private static BlockFace computeJunction(BlockFace traveling, BlockFace open, BlockFace target) {
 
 		// You can't turn around
 		if (traveling == opposite(target)) return null;
@@ -216,12 +201,47 @@ public class PdxTrackRouter extends JavaPlugin {
 	}
 
 	/**
+	 * Compute the track direction to take a player moving in one direction
+	 * and move him in the target direction
+	 * @param direction Direction player is moving
+	 * @param target Direction player wants to be moving
+	 * @return Direction the junction track should be positioned in.
+	 */
+	private BlockFace computeFourWayJunction(BlockFace direction, BlockFace target) {
+		getLogger().info(direction.toString() + "," + target.toString());
+		if (direction == target) return direction;
+		if (direction == opposite(target)) return null;
+		return addFaces(direction, opposite(target));
+	}
+	
+	/**
 	 * This call back is called when a player reaches a 4-way intersection
 	 * @param player Player who reached the intersection
 	 * @param block  Center block of the intersection
 	 * @param direction Direction player is traveling
 	 */
-	public void updateFourWay(Player player, Block block, BlockFace direction) {
-		passthroughJunction(block, direction);
+	public void updateFourWay(Player player, Block block, BlockFace direction, String[] lines) {
+		String destination = playerTargets.get(player.getName());
+		if (destination == null) destination = "default";
+		BlockFace target = findDestination(destination, lines);
+		BlockFace newDirection = computeFourWayJunction(direction, target);
+
+		setRailDirection(block, newDirection);
+	}
+
+	/**
+	 * Treat a block like a rail and set its direction
+	 * @param block A block which is a rail
+	 * @param newDirection new direction that rail should be set to
+	 */
+	private static void setRailDirection(Block block, BlockFace newDirection) {
+		BlockState state = block.getState();
+		Rails rails = (Rails)state.getData();
+		
+		if (newDirection != null) {
+			rails.setDirection(newDirection, false);
+			state.setData(rails);
+			state.update();
+		}
 	}
 }

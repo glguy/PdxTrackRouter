@@ -26,6 +26,9 @@ public class TrackListener implements Listener {
 	private static final String JUNCTION_HEADER = "[junction]";
 	private static BlockFace[] cardinalDirections
 	  = new BlockFace[] {BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH};
+	private static BlockFace[] combinedDirections
+	  = new BlockFace[] {BlockFace.NORTH_EAST, BlockFace.SOUTH_EAST, BlockFace.NORTH_WEST, BlockFace.SOUTH_WEST};
+
 	private static BlockFace signStackDirection = BlockFace.UP;
 
 	private PdxTrackRouter plugin;
@@ -48,16 +51,15 @@ public class TrackListener implements Listener {
 
 		Block from = event.getFrom().getBlock();
 		Block to   = event.getTo().getBlock();
-
+		BlockFace direction = from.getFace(to);
 		// Skip move events inside the same block
-		if (from == to) return;
+		if (direction == BlockFace.SELF) return;
 
 		// Skip move events where a player is not riding
 		Entity passenger = event.getVehicle().getPassenger();
 		if (! (passenger instanceof Player)) return;
 		Player player = (Player)passenger;
 
-		BlockFace direction = from.getFace(to);
 		Block block = to.getRelative(direction);
 
 		// Only check when arriving at a rails block
@@ -86,10 +88,30 @@ public class TrackListener implements Listener {
 
 		// Notify the plug-in
 		if (openEnd == null) {
-			plugin.updateFourWay(player, block, direction);
+			lines = findCornerSigns(block);
+			if (lines != null) {
+				plugin.updateFourWay(player, block, direction, lines);
+			}
 		} else {
 			plugin.updateJunction(player, block, direction, openEnd, lines);
 		}
+	}
+
+	private String[] findCornerSigns(Block block) {
+		String[] result = null;
+		for (BlockFace d : combinedDirections) {
+			Block b = block.getRelative(d);
+			String[] lines = collectJunctionSignLines(b);
+			if (lines.length > 0) {
+				if (result == null) {
+					result = lines;
+				} else {
+					return null;
+				}
+			}
+		}
+
+		return result;
 	}
 
 	/**
