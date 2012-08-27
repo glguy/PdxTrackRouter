@@ -6,7 +6,10 @@ import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.bukkit.event.vehicle.VehicleMoveEvent;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -23,14 +26,16 @@ import org.bukkit.event.Listener;
  */
 public class TrackListener implements Listener {
 
-	private static BlockFace[] cardinalDirections
-	  = new BlockFace[] {BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH};
-	private static BlockFace[] combinedDirections
-	  = new BlockFace[] {BlockFace.NORTH_EAST, BlockFace.SOUTH_EAST, BlockFace.NORTH_WEST, BlockFace.SOUTH_WEST};
-
 	private static BlockFace signStackDirection = BlockFace.UP;
 
+	/**
+	 * Plug-in to notify when events happen.
+	 */
 	private PdxTrackRouter plugin;
+
+	/**
+	 * String to match against when checking for junction signs.
+	 */
 	private String junctionHeader;
 
 	/**
@@ -68,7 +73,7 @@ public class TrackListener implements Listener {
 
 		// Verify that this block's neighbors are all rails
 		// or a junction sign stack, but nothing else.
-		for (BlockFace d : cardinalDirections) {
+		for (BlockFace d : BlockFaceUtils.cardinalDirections) {
 			Block neighbor = block.getRelative(d);
 			Material m = neighbor.getType();
 			if (m == Material.RAILS || m == Material.POWERED_RAIL) {
@@ -102,9 +107,9 @@ public class TrackListener implements Listener {
 		}
 	}
 
-	private String[] findCornerSigns(Block block) {
+	private static String[] findCornerSigns(Block block) {
 		String[] result = null;
-		for (BlockFace d : combinedDirections) {
+		for (BlockFace d : BlockFaceUtils.combinedDirections) {
 			Block b = block.getRelative(d);
 			String[] lines = collectJunctionSignLines(b);
 			if (lines.length > 0) {
@@ -141,5 +146,18 @@ public class TrackListener implements Listener {
 		final String[] result = stack.toArray(new String[]{});
 		ArrayUtils.reverse(result);
 		return result;
+	}
+
+	/**
+	 * Reset players' destinations upon departing a mine cart.
+	 * @param event
+	 */
+	@EventHandler(ignoreCancelled = true)
+	public void onVehicleExit(VehicleExitEvent event) {
+		if (event.getVehicle().getType() != EntityType.MINECART) return;
+		LivingEntity entity = event.getExited();
+		if (entity instanceof Player) {
+			plugin.clearPlayerDestination((Player)entity);
+		}
 	}
 }

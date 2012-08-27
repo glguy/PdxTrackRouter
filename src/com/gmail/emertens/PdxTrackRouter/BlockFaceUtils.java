@@ -4,6 +4,11 @@ import org.bukkit.block.BlockFace;
 
 public class BlockFaceUtils {
 
+	public static BlockFace[] cardinalDirections
+	  = new BlockFace[] {BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH};
+	public static BlockFace[] combinedDirections
+	  = new BlockFace[] {BlockFace.NORTH_EAST, BlockFace.SOUTH_EAST, BlockFace.NORTH_WEST, BlockFace.SOUTH_WEST};
+
 	/**
 	 * Translate a direction string into a block face
 	 * @param c String describing a direction
