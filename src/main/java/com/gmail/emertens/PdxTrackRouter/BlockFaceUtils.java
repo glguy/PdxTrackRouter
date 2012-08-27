@@ -2,11 +2,23 @@ package com.gmail.emertens.PdxTrackRouter;
 
 import org.bukkit.block.BlockFace;
 
+/**
+ * This class provides utility methods for operating on BlockFace values
+ * as compass directions.
+ * @author Eric Mertens
+ */
 public class BlockFaceUtils {
 
+	/**
+	 * The cardinal directions are north, east, south, and west.
+	 */
 	public static BlockFace[] cardinalDirections
 	  = new BlockFace[] {BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH};
-	public static BlockFace[] combinedDirections
+	
+	/**
+	 * The ordinal directions are north-east, south-east, south-west, and north-west.
+	 */
+	public static BlockFace[] ordinalDirections
 	  = new BlockFace[] {BlockFace.NORTH_EAST, BlockFace.SOUTH_EAST, BlockFace.NORTH_WEST, BlockFace.SOUTH_WEST};
 
 	/**
@@ -41,10 +53,10 @@ public class BlockFaceUtils {
 	}
 
 	/**
-	 * Compute the combination of two cardinal directions
+	 * Compute the ordinal direction of two cardinal directions, if possible
 	 * @param a A cardinal direction
 	 * @param b A cardinal direction
-	 * @return A combination of the cardinal directions or null if there is none
+	 * @return An ordinal directions or null if there is none
 	 */
 	public static BlockFace addFaces(BlockFace a, BlockFace b) {
 		switch (a) {

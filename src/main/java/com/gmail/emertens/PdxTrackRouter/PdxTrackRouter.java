@@ -11,6 +11,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.material.Rails;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -27,15 +28,22 @@ public class PdxTrackRouter extends JavaPlugin {
 	private static String DESTINATION_HEADER = "[destination]";
 	private static String JUNCTION_HEADER = "[junction]";
 
+	/**
+	 * Store player destination preferences based on player name. 
+	 */
 	private Map<String,String> playerTargets = new HashMap<String, String>();
 
 	@Override
 	public void onEnable() {
+		PluginManager pm = getServer().getPluginManager();
+		
+		// Listen for mine cart events
 		TrackListener trackListener = new TrackListener(this, JUNCTION_HEADER);
-		getServer().getPluginManager().registerEvents(trackListener, this);
+		pm.registerEvents(trackListener, this);
 
+		// Listen for player events
 		PlayerListener playerListener = new PlayerListener(this, DESTINATION_HEADER);
-		getServer().getPluginManager().registerEvents(playerListener, this);
+		pm.registerEvents(playerListener, this);
 	}
 
 	@Override
@@ -76,14 +84,12 @@ public class PdxTrackRouter extends JavaPlugin {
 	public void updateJunction(Player player, Block block, BlockFace traveling, BlockFace open, String[] lines) {
 		String destination = playerToDestination(player);
 		BlockFace target = findDestination(destination, lines, traveling);
+		
+		// If no rule matches attempt to continue straight
 		if (target == null) {
-			if (traveling != open) {
-				target = traveling;
-			} else {
-				return;
-			}
+			target = traveling;
 		}
-
+		
 		BlockFace newDirection = computeJunction(traveling, open, target);
 		setRailDirection(block, newDirection);
 	}
@@ -102,6 +108,7 @@ public class PdxTrackRouter extends JavaPlugin {
 		final BlockFace wellKnown = findWellKnownDestination(destination);
 		if (wellKnown != null) return wellKnown;
 
+		// Search through the sign lines for a valid, matching route
 		for (int i = 1; i < lines.length; i++) {
 			final String current = lines[i].toLowerCase();
 			final int prefixLength;
@@ -125,6 +132,11 @@ public class PdxTrackRouter extends JavaPlugin {
 		return null;
 	}
 
+	/**
+	 * Identify "well-known" destinations an convert immediately to a direction.
+	 * @param destination Destination label
+	 * @return direction if destination is well-known, null otherwise
+	 */
 	private static BlockFace findWellKnownDestination(String destination) {
 		if (destination.equalsIgnoreCase("north")) {
 			return BlockFace.EAST;
@@ -172,8 +184,14 @@ public class PdxTrackRouter extends JavaPlugin {
 	 * @return Direction the junction track should be positioned in.
 	 */
 	private BlockFace computeFourWayJunction(BlockFace direction, BlockFace target) {
+		
+		// Continuing straight through
 		if (direction == target) return direction;
+		
+		// Impossible to reverse direction
 		if (direction == BlockFaceUtils.opposite(target)) return null;
+		
+		// Compute a turn
 		return BlockFaceUtils.addFaces(direction, BlockFaceUtils.opposite(target));
 	}
 
@@ -184,47 +202,58 @@ public class PdxTrackRouter extends JavaPlugin {
 	 * @param direction Direction player is traveling
 	 */
 	public void updateFourWay(Player player, Block block, BlockFace direction, String[] lines) {
-		String destination = playerToDestination(player);
+		final String destination = playerToDestination(player);
 		BlockFace target = findDestination(destination, lines, direction);
-		BlockFace newDirection;
+		
+		// If no rules match attempt to proceed straight through
 		if (target == null) {
-			newDirection = direction;
-		} else {
-			newDirection = computeFourWayJunction(direction, target);
-		}
+			target = direction;
+		} 
 
+		final BlockFace newDirection = computeFourWayJunction(direction, target);
 		setRailDirection(block, newDirection);
 	}
 
+	/**
+	 * Determine the target destination for a player. Assume that null means
+	 * that there is no player and the cart is empty.
+	 * @param player Player in the cart or null for empty carts
+	 * @return The label of the preferred destination if found, default otherwise
+	 */
 	private String playerToDestination(Player player) {
 		String destination;
 		if (player != null) {
 			destination = playerTargets.get(player.getName());
-			if (destination == null) {
-				destination = DEFAULT_DESTINATION;
-			}
 		} else {
 			destination = EMPTY_DESTINATION;
 		}
+		
+		if (destination == null) {
+			destination = DEFAULT_DESTINATION;
+		}
+		
 		return destination;
 	}
 
 	/**
-	 * Treat a block like a rail and set its direction
+	 * Treat a block like a rail and set its direction. Ignore nulls.
 	 * @param block A block which is a rail
 	 * @param newDirection new direction that rail should be set to
 	 */
 	private static void setRailDirection(Block block, BlockFace newDirection) {
-		BlockState state = block.getState();
-		Rails rails = (Rails)state.getData();
-
 		if (newDirection != null) {
+			BlockState state = block.getState();
+			Rails rails = (Rails)state.getData();
 			rails.setDirection(newDirection, false);
 			state.setData(rails);
 			state.update();
 		}
 	}
 
+	/**
+	 * Clear the target destination for a given player.
+	 * @param player The player whose destination preference should be cleared
+	 */
 	public void clearPlayerDestination(Player player) {
 		if (playerTargets.containsKey(player.getName())) {
 			playerTargets.remove(player.getName());
@@ -232,6 +261,11 @@ public class PdxTrackRouter extends JavaPlugin {
 		}
 	}
 
+	/**
+	 * Set the target destination for a player.
+	 * @param player The player whose destination should be set
+	 * @param destination The destination to set for the player
+	 */
 	public void setPlayerDestination(Player player, String destination) {
 		playerTargets.put(player.getName(), destination);
 		player.sendMessage(ChatColor.GREEN + "Destination set to "

@@ -11,7 +11,6 @@
 		</repository>
 	</repositories>
 	<build>
-		<sourceDirectory>src</sourceDirectory>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -34,4 +33,7 @@
 	</dependencies>
 	<name>PdxTrackRouter</name>
 	<url>http://github.com/glguy/PdxTrackRouter</url>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
 </project>

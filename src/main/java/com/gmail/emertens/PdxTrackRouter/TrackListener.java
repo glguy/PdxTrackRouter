@@ -109,7 +109,7 @@ public class TrackListener implements Listener {
 
 	private static String[] findCornerSigns(Block block) {
 		String[] result = null;
-		for (BlockFace d : BlockFaceUtils.combinedDirections) {
+		for (BlockFace d : BlockFaceUtils.ordinalDirections) {
 			Block b = block.getRelative(d);
 			String[] lines = collectJunctionSignLines(b);
 			if (lines.length > 0) {
