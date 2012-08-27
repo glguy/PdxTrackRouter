@@ -45,21 +45,24 @@ public class PdxTrackRouter extends JavaPlugin {
 		
 		if (sender instanceof Player) {
 			Player player = (Player) sender;
-			if (args.length == 1) {
+			switch (args.length) {
+			case 0:
+				playerTargets.remove(player.getName());
+				sender.sendMessage(ChatColor.GREEN + "Junction cleared");
+				success = true;
+				break;
+			case 1:
 				playerTargets.put(player.getName(), args[0]);
 				sender.sendMessage(ChatColor.GREEN + "Junction set to "
 						+ ChatColor.YELLOW + args[0]);
 				success = true;
-			} else if (args.length == 0) {
-				playerTargets.remove(player.getName());
-				sender.sendMessage(ChatColor.GREEN + "Junction cleared");
-				success = true;
-			} else {
+				break;
+			default:
 				success = false;
 			}
 		} else {
 			success = true;
-			sender.sendMessage(ChatColor.RED + "Console can't use junction");
+			sender.sendMessage(ChatColor.RED + "This command can only be run by a player");
 		}
 		return success;
 	}
@@ -90,6 +93,14 @@ public class PdxTrackRouter extends JavaPlugin {
 			state.update();
 		}
 	} 
+
+	private static void passthroughJunction(Block block, BlockFace traveling) {
+		BlockState state = block.getState();
+		Rails rails = (Rails)state.getData();
+		rails.setDirection(traveling, false);
+		state.setData(rails);
+		state.update();
+	}
 
 	/**
 	 * Find a target direction given a junction sign line array and a destination name.
@@ -202,5 +213,15 @@ public class PdxTrackRouter extends JavaPlugin {
 		case WEST: return BlockFace.EAST;
 		default: return null;
 		}
+	}
+
+	/**
+	 * This call back is called when a player reaches a 4-way intersection
+	 * @param player Player who reached the intersection
+	 * @param block  Center block of the intersection
+	 * @param direction Direction player is traveling
+	 */
+	public void updateFourWay(Player player, Block block, BlockFace direction) {
+		passthroughJunction(block, direction);
 	}
 }

@@ -84,7 +84,11 @@ public class TrackListener implements Listener {
 		}
 
 		// Notify the plug-in
-		plugin.updateJunction(player, block, direction, openEnd, lines);
+		if (openEnd == null) {
+			plugin.updateFourWay(player, block, direction);
+		} else {
+			plugin.updateJunction(player, block, direction, openEnd, lines);
+		}
 	}
 
 	/**
