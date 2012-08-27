@@ -3,6 +3,7 @@ package com.gmail.emertens.PdxTrackRouter;
 import java.util.ArrayList;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -105,7 +106,7 @@ public class TrackListener implements Listener {
 			Sign sign = (Sign)state;
 			String[] lines = sign.getLines();
 			for (int i = lines.length - 1; i >= 0; i--) {
-				stack.add(lines[i]);
+				stack.add(ChatColor.stripColor(lines[i]));
 			}
 			block = block.getRelative(signStackDirection);
 		}
