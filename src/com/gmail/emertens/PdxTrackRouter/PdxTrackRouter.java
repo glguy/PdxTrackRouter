@@ -22,6 +22,7 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public class PdxTrackRouter extends JavaPlugin {
 
+	private static final String DEFAULT_DESTINATION = "default";
 	private static String DESTINATION_HEADER = "[destination]";
 	private static String JUNCTION_HEADER = "[junction]";
 
@@ -46,12 +47,11 @@ public class PdxTrackRouter extends JavaPlugin {
 			Player player = (Player) sender;
 			switch (args.length) {
 			case 0:
-				playerTargets.remove(player.getName());
-				sender.sendMessage(ChatColor.GREEN + "Junction cleared");
+				clearPlayerDestination(player);
 				success = true;
 				break;
 			case 1:
-				setPlayerJunction(player, args[0]);
+				setPlayerDestination(player, args[0]);
 				success = true;
 				break;
 			default:
@@ -75,7 +75,7 @@ public class PdxTrackRouter extends JavaPlugin {
 	public void updateJunction(Player player, Block block, BlockFace traveling, BlockFace open, String[] lines) {
 
 		String destination = playerTargets.get(player.getName());
-		if (destination == null) destination = "default";
+		if (destination == null) destination = DEFAULT_DESTINATION;
 
 		BlockFace target = findDestination(destination, lines);
 		if (target == null) return;
@@ -92,34 +92,24 @@ public class PdxTrackRouter extends JavaPlugin {
 	 */
 	private static BlockFace findDestination(String destination, String[] lines) {
 		final String prefix = destination.toLowerCase() + ":";
-		final String defaultPrefix = "default:";
+		final String defaultPrefix = DEFAULT_DESTINATION + ":";
 
 		for (int i = 1; i < lines.length; i++) {
-			String current = lines[i].toLowerCase();
+			final String current = lines[i].toLowerCase();
+			final String str;
+
 			if (current.startsWith(prefix)) {
-				return charToDirection(lines[i].substring(prefix.length()).trim());
+				str = current.substring(prefix.length());
 			} else if (current.startsWith(defaultPrefix)) {
-				return charToDirection(lines[i].substring(defaultPrefix.length()).trim());
+				str = current.substring(defaultPrefix.length());
+			} else {
+				continue;
 			}
+			return BlockFaceUtils.charToDirection(str.trim());
 		}
 		return null;
 	}
 
-	/**
-	 * Translate a direction string into a block face
-	 * @param c String describing a direction
-	 * @return block face corresponding to game direction
-	 */
-	public static BlockFace charToDirection(String c) {
-		if (c.length() == 0) return null;
-		switch (Character.toUpperCase(c.charAt(0))) {
-		case 'N': return BlockFace.EAST;
-		case 'E': return BlockFace.SOUTH;
-		case 'S': return BlockFace.WEST;
-		case 'W': return BlockFace.NORTH;
-		default: return null;
-		}
-	}
 
 	/**
 	 * Compute the new direction a track should face
@@ -131,70 +121,19 @@ public class PdxTrackRouter extends JavaPlugin {
 	private static BlockFace computeJunction(BlockFace traveling, BlockFace open, BlockFace target) {
 
 		// You can't turn around
-		if (traveling == opposite(target)) return null;
+		if (traveling == BlockFaceUtils.opposite(target)) return null;
 
 		// You can't go off the tracks
 		if (target == open) return null;
 
 		// Heading into a T junction
-		if (traveling == open) return addFaces(opposite(target), open);
+		if (traveling == open) return BlockFaceUtils.addFaces(BlockFaceUtils.opposite(target), open);
 
 		// Continuing straight through a junction
-		if (traveling == target) return addFaces(opposite(target), open);
+		if (traveling == target) return BlockFaceUtils.addFaces(BlockFaceUtils.opposite(target), open);
 
 		// Turning into a junction
-		return addFaces(traveling, open);
-	}
-
-	/**
-	 * Compute the combination of two cardinal directions
-	 * @param a A cardinal direction
-	 * @param b A cardinal direction
-	 * @return A combination of the cardinal directions or null if there is none
-	 */
-	public static BlockFace addFaces(BlockFace a, BlockFace b) {
-		switch (a) {
-		case NORTH:
-			switch (b) {
-			case EAST: return BlockFace.NORTH_EAST;
-			case WEST: return BlockFace.NORTH_WEST;
-			default: return null;
-			}
-		case EAST:
-			switch (b) {
-			case NORTH: return BlockFace.NORTH_EAST;
-			case SOUTH: return BlockFace.SOUTH_EAST;
-			default: return null;
-			}
-		case SOUTH:
-			switch (b) {
-			case EAST: return BlockFace.SOUTH_EAST;
-			case WEST: return BlockFace.SOUTH_WEST;
-			default: return null;
-			}
-		case WEST:
-			switch (b) {
-			case NORTH: return BlockFace.NORTH_WEST;
-			case SOUTH: return BlockFace.SOUTH_WEST;
-			default: return null;
-			}
-		default: return null;
-		}
-	}
-
-	/**
-	 * Return the opposite cardinal direction
-	 * @param a A cardinal direction
-	 * @return The opposite direction
-	 */
-	public static BlockFace opposite(BlockFace a) {
-		switch (a) {
-		case NORTH: return BlockFace.SOUTH;
-		case SOUTH: return BlockFace.NORTH;
-		case EAST: return BlockFace.WEST;
-		case WEST: return BlockFace.EAST;
-		default: return null;
-		}
+		return BlockFaceUtils.addFaces(traveling, open);
 	}
 
 	/**
@@ -205,10 +144,9 @@ public class PdxTrackRouter extends JavaPlugin {
 	 * @return Direction the junction track should be positioned in.
 	 */
 	private BlockFace computeFourWayJunction(BlockFace direction, BlockFace target) {
-		getLogger().info(direction.toString() + "," + target.toString());
 		if (direction == target) return direction;
-		if (direction == opposite(target)) return null;
-		return addFaces(direction, opposite(target));
+		if (direction == BlockFaceUtils.opposite(target)) return null;
+		return BlockFaceUtils.addFaces(direction, BlockFaceUtils.opposite(target));
 	}
 
 	/**
@@ -219,10 +157,10 @@ public class PdxTrackRouter extends JavaPlugin {
 	 */
 	public void updateFourWay(Player player, Block block, BlockFace direction, String[] lines) {
 		String destination = playerTargets.get(player.getName());
-		if (destination == null) destination = "default";
+		if (destination == null) destination = DEFAULT_DESTINATION;
 		BlockFace target = findDestination(destination, lines);
+		if (target == null) return;
 		BlockFace newDirection = computeFourWayJunction(direction, target);
-
 		setRailDirection(block, newDirection);
 	}
 
@@ -242,9 +180,14 @@ public class PdxTrackRouter extends JavaPlugin {
 		}
 	}
 
-	public void setPlayerJunction(Player player, String destination) {
+	public void clearPlayerDestination(Player player) {
+		playerTargets.remove(player.getName());
+		player.sendMessage(ChatColor.GREEN + "Destination cleared");
+	}
+
+	public void setPlayerDestination(Player player, String destination) {
 		playerTargets.put(player.getName(), destination);
-		player.sendMessage(ChatColor.GREEN + "Junction set to "
+		player.sendMessage(ChatColor.GREEN + "Destination set to "
 				+ ChatColor.YELLOW + destination);
 
 	}
