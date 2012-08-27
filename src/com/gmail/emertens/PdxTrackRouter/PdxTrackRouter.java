@@ -76,7 +76,13 @@ public class PdxTrackRouter extends JavaPlugin {
 	public void updateJunction(Player player, Block block, BlockFace traveling, BlockFace open, String[] lines) {
 		String destination = playerToDestination(player);
 		BlockFace target = findDestination(destination, lines);
-		if (target == null) return;
+		if (target == null) {
+			if (traveling != open) {
+				target = traveling;
+			} else {
+				return;
+			}
+		}
 
 		BlockFace newDirection = computeJunction(traveling, open, target);
 		setRailDirection(block, newDirection);
@@ -92,6 +98,16 @@ public class PdxTrackRouter extends JavaPlugin {
 		final String prefix = destination.toLowerCase() + ":";
 		final String defaultPrefix = DEFAULT_DESTINATION + ":";
 
+		if (destination.equalsIgnoreCase("north")) {
+			return BlockFace.EAST;
+		} else if (destination.equalsIgnoreCase("east")) {
+			return BlockFace.SOUTH;
+		} else if (destination.equalsIgnoreCase("south")) {
+			return BlockFace.WEST;
+		} else if (destination.equalsIgnoreCase("west")) {
+			return BlockFace.NORTH;
+		}
+
 		for (int i = 1; i < lines.length; i++) {
 			final String current = lines[i].toLowerCase();
 			final String str;
@@ -103,6 +119,7 @@ public class PdxTrackRouter extends JavaPlugin {
 			} else {
 				continue;
 			}
+
 			return BlockFaceUtils.charToDirection(str.trim());
 		}
 		return null;
@@ -156,8 +173,12 @@ public class PdxTrackRouter extends JavaPlugin {
 	public void updateFourWay(Player player, Block block, BlockFace direction, String[] lines) {
 		String destination = playerToDestination(player);
 		BlockFace target = findDestination(destination, lines);
-		if (target == null) return;
-		BlockFace newDirection = computeFourWayJunction(direction, target);
+		BlockFace newDirection;
+		if (target == null) {
+			newDirection = direction;
+		} else {
+			newDirection = computeFourWayJunction(direction, target);
+		}
 		setRailDirection(block, newDirection);
 	}
 
