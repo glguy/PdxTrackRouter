@@ -121,6 +121,7 @@ public class PdxTrackRouter extends JavaPlugin {
 				continue;
 			}
 			dir = BlockFaceUtils.charToDirection(str.trim());
+			if (dir == null) continue;
 			if (dir == BlockFaceUtils.opposite(direction)) continue;
 			return dir;
 		}
