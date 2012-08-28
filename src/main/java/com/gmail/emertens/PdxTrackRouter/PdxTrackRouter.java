@@ -9,7 +9,11 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Minecart;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.PoweredMinecart;
+import org.bukkit.entity.StorageMinecart;
 import org.bukkit.material.Rails;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -75,14 +79,14 @@ public class PdxTrackRouter extends JavaPlugin {
 
 	/**
 	 * Update a junction a player is about to cross.
-	 * @param player The player in the mine cart
+	 * @param preferenceEntity The player in the mine cart
 	 * @param block The middle track piece to be updated
 	 * @param traveling The direction the player is traveling
 	 * @param open The direction which has no track
 	 * @param lines The concatenated lines of the junction sign stack
 	 */
-	public void updateJunction(Player player, Block block, BlockFace traveling, BlockFace open, String[] lines) {
-		String destination = playerToDestination(player);
+	public void updateJunction(Entity preferenceEntity, Block block, BlockFace traveling, BlockFace open, String[] lines) {
+		String destination = entityToPreference(preferenceEntity);
 		BlockFace target = findDestination(destination, lines, traveling);
 		
 		// If no rule matches attempt to continue straight
@@ -94,6 +98,21 @@ public class PdxTrackRouter extends JavaPlugin {
 		setRailDirection(block, newDirection);
 	}
 
+	private String entityToPreference(Entity entity) {
+		if (entity instanceof Player) {
+			Player player = (Player)entity;
+			return playerToDestination(player);
+		} else if (entity instanceof StorageMinecart) {
+			return "chest";
+		} else if (entity instanceof PoweredMinecart) {
+			return "engine";
+		} else if (entity instanceof Minecart) {
+			return "empty";
+		} else {
+			return DEFAULT_DESTINATION;
+		}
+	}
+	
 	/**
 	 * Find a target direction given a junction sign line array and a destination name.
 	 * @param destination Destination label to search for
@@ -197,12 +216,12 @@ public class PdxTrackRouter extends JavaPlugin {
 
 	/**
 	 * This call back is called when a player reaches a 4-way intersection
-	 * @param player Player who reached the intersection
+	 * @param preferenceEntity Player who reached the intersection
 	 * @param block  Center block of the intersection
 	 * @param direction Direction player is traveling
 	 */
-	public void updateFourWay(Player player, Block block, BlockFace direction, String[] lines) {
-		final String destination = playerToDestination(player);
+	public void updateFourWay(Entity preferenceEntity, Block block, BlockFace direction, String[] lines) {
+		final String destination = entityToPreference(preferenceEntity);
 		BlockFace target = findDestination(destination, lines, direction);
 		
 		// If no rules match attempt to proceed straight through

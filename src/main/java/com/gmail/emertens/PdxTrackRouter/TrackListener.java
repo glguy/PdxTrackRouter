@@ -9,6 +9,8 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.StorageMinecart;
+import org.bukkit.entity.Vehicle;
 import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.bukkit.event.vehicle.VehicleMoveEvent;
 import org.bukkit.block.Block;
@@ -24,6 +26,7 @@ import org.bukkit.event.Listener;
  * @author Eric Mertens
  *
  */
+@SuppressWarnings("unused")
 public class TrackListener implements Listener {
 
 	private static BlockFace signStackDirection = BlockFace.UP;
@@ -81,36 +84,34 @@ public class TrackListener implements Listener {
 				continue;
 			} else if (openEnd == null) {
 				openEnd = d;
-				lines = collectJunctionSignLines(neighbor);
-				if (lines.length == 0 || !ChatColor.stripColor(lines[0]).equalsIgnoreCase(junctionHeader)) return;
 			} else {
 				// Abort as soon as we don't find rails or a sign
 				return;
 			}
 		}
 
-		Entity passenger = event.getVehicle().getPassenger();
-		final Player player;
-		if (passenger instanceof Player) {
-			player = (Player)passenger;
-		} else {
-			player = null;
-		}
+		Entity preferenceEntity;
 
-		// Notify the plug-in
-		if (openEnd == null) {
-			lines = findCornerSigns(block);
-			if (lines != null) {
-				plugin.updateFourWay(player, block, direction, lines);
+		Vehicle vehicle = event.getVehicle();
+		Entity passenger = vehicle.getPassenger();
+
+		preferenceEntity = passenger == null ? vehicle : passenger;
+
+		lines = findCornerSigns(block);
+
+		if (lines != null) {
+			if (openEnd == null) {
+				plugin.updateFourWay(preferenceEntity, block, direction, lines);
+			} else {
+				plugin.updateJunction(preferenceEntity, block, direction, openEnd, lines);
 			}
-		} else {
-			plugin.updateJunction(player, block, direction, openEnd, lines);
 		}
 	}
 
+	private static BlockFace[] signLocations = (BlockFace[]) ArrayUtils.add(BlockFaceUtils.ordinalDirections, BlockFace.UP);
 	private static String[] findCornerSigns(Block block) {
 		String[] result = null;
-		for (BlockFace d : BlockFaceUtils.ordinalDirections) {
+		for (BlockFace d : signLocations) {
 			Block b = block.getRelative(d);
 			String[] lines = collectJunctionSignLines(b);
 			if (lines.length > 0) {
