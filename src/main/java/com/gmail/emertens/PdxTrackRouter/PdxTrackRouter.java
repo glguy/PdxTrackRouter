@@ -42,7 +42,7 @@ public class PdxTrackRouter extends JavaPlugin {
 		pm.registerEvents(trackListener, this);
 
 		// Listen for player events
-		PlayerListener playerListener = new PlayerListener(this, DESTINATION_HEADER);
+		PlayerListener playerListener = new PlayerListener(this, DESTINATION_HEADER, JUNCTION_HEADER);
 		pm.registerEvents(playerListener, this);
 	}
 
@@ -110,7 +110,7 @@ public class PdxTrackRouter extends JavaPlugin {
 
 		// Search through the sign lines for a valid, matching route
 		for (int i = 1; i < lines.length; i++) {
-			final String current = lines[i].toLowerCase();
+			final String current = ChatColor.stripColor(lines[i]).toLowerCase().replaceAll(" ", "");
 			final int prefixLength;
 
 			if (current.startsWith(prefix)) {

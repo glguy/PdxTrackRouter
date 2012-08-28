@@ -8,6 +8,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 /**
@@ -19,11 +20,13 @@ import org.bukkit.event.player.PlayerInteractEvent;
 public class PlayerListener implements Listener {
 
 	private PdxTrackRouter plugin;
-	private String header;
+	private String destinationHeader;
+	private String junctionHeader;
 
-	public PlayerListener(PdxTrackRouter p, String header) {
+	public PlayerListener(PdxTrackRouter p, String destination, String junction) {
 		plugin = p;
-		this.header = header;
+		this.destinationHeader = destination;
+		this.junctionHeader = junction;
 	}
 
 	/**
@@ -37,7 +40,7 @@ public class PlayerListener implements Listener {
 		if (state instanceof Sign) {
 			Sign sign = (Sign)state;
 
-			if (header.equalsIgnoreCase(ChatColor.stripColor(sign.getLine(0)))) {
+			if (destinationHeader.equalsIgnoreCase(ChatColor.stripColor(sign.getLine(0)))) {
 				event.setCancelled(true);
 			}
 		}
@@ -57,9 +60,20 @@ public class PlayerListener implements Listener {
 		if (state instanceof Sign) {
 			Sign sign = (Sign)state;
 
-			if (header.equalsIgnoreCase(ChatColor.stripColor(sign.getLine(0)))) {
+			if (destinationHeader.equalsIgnoreCase(ChatColor.stripColor(sign.getLine(0)))) {
 				plugin.setPlayerDestination(event.getPlayer(), ChatColor.stripColor(sign.getLine(1)));
 			}
+		}
+	}
+
+	/**
+	 * Change command sign headers to blue to give users a sense of feedback
+	 */
+	@EventHandler(ignoreCancelled = true)
+	public void onSignChange(SignChangeEvent event) {
+		final String header = event.getLine(0);
+		if (header.equalsIgnoreCase(junctionHeader) || header.equalsIgnoreCase(destinationHeader)) {
+			event.setLine(0, ChatColor.BLUE + header);
 		}
 	}
 }

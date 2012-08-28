@@ -82,7 +82,7 @@ public class TrackListener implements Listener {
 			} else if (openEnd == null) {
 				openEnd = d;
 				lines = collectJunctionSignLines(neighbor);
-				if (lines.length == 0 || !lines[0].equalsIgnoreCase(junctionHeader)) return;
+				if (lines.length == 0 || !ChatColor.stripColor(lines[0]).equalsIgnoreCase(junctionHeader)) return;
 			} else {
 				// Abort as soon as we don't find rails or a sign
 				return;
@@ -139,7 +139,7 @@ public class TrackListener implements Listener {
 			Sign sign = (Sign)state;
 			String[] lines = sign.getLines();
 			for (int i = lines.length - 1; i >= 0; i--) {
-				stack.add(ChatColor.stripColor(lines[i]));
+				stack.add(lines[i]);
 			}
 			block = block.getRelative(signStackDirection);
 		}
