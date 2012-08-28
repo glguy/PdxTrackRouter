@@ -54,13 +54,14 @@ public class TrackListener implements Listener {
 	 * @param event
 	 */
 	@EventHandler(ignoreCancelled=true)
-	public void onEvent(VehicleMoveEvent event) {
+	public void onVehicleMove(VehicleMoveEvent event) {
 
 		Block from = event.getFrom().getBlock();
 		Block to   = event.getTo().getBlock();
 		BlockFace direction = from.getFace(to);
+
 		// Skip move events inside the same block
-		if (direction == BlockFace.SELF) return;
+		if (direction == BlockFace.SELF || direction == null) return;
 
 		Block block = to.getRelative(direction);
 
