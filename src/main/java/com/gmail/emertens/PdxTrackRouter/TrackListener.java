@@ -211,7 +211,7 @@ public class TrackListener implements Listener {
 		for (BlockFace d : signLocations) {
 			Block b = block.getRelative(d);
 			String[] lines = collectJunctionSignLines(b);
-			if (lines != null && lines.length > 0) {
+			if (lines != null && lines.length != 0) {
 				if (result == null) {
 					result = lines;
 				} else {
@@ -247,7 +247,7 @@ public class TrackListener implements Listener {
 		final String[] result = stack.toArray(new String[] {});
 		ArrayUtils.reverse(result);
 
-		if (result.length > 0 &&
+		if (result.length != 0 &&
 		    ChatColor.stripColor(result[0]).equalsIgnoreCase(junctionHeader)) {
 			return result;
 		} else {
