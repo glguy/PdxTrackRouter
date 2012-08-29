@@ -72,6 +72,7 @@ public class TrackListener implements Listener {
 		// Handle the common case early
 		if (direction == BlockFace.SELF || direction == null) return;
 		direction = computeNextRail(from, to, direction);
+		if (direction == null) return;
 
 		final Block block = to.getRelative(direction);
 		if (block == null)
@@ -138,6 +139,7 @@ public class TrackListener implements Listener {
 	}
 
 	private BlockFace computeNextRail(Block from, Block to, BlockFace traveling) {
+		if (traveling == null) return null;
 		switch (traveling) {
 		case UP:
 			return railDirection(from);

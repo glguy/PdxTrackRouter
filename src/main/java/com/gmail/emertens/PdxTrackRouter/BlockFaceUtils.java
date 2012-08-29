@@ -43,6 +43,7 @@ public class BlockFaceUtils {
 	 * @return The opposite direction
 	 */
 	public static BlockFace opposite(BlockFace a) {
+		if (a == null) return null;
 		switch (a) {
 		case NORTH: return BlockFace.SOUTH;
 		case SOUTH: return BlockFace.NORTH;
@@ -59,6 +60,7 @@ public class BlockFaceUtils {
 	 * @return An ordinal directions or null if there is none
 	 */
 	public static BlockFace addFaces(BlockFace a, BlockFace b) {
+		if (a == null || b == null) return null;
 		switch (a) {
 		case NORTH:
 			switch (b) {
