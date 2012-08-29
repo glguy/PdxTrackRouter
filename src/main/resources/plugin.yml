@@ -1,10 +1,12 @@
 name: PdxTrackRouter
 main: com.gmail.emertens.PdxTrackRouter.PdxTrackRouter
-version: 0.1
+version: 0.2
 description: Automatically route minecarts down tracks. 
-authors: [emertens]
+author: glguy
+load: POSTWORLD
+website: http://dev.bukkit.org/server-mods/pdxtrackrouter/
 
 commands:
   destination:
-    description: Set junction target
+    description: Set destination to take at junctions
     usage: /<command> [DIRECTION]
