@@ -124,9 +124,6 @@ public class PdxTrackRouter extends JavaPlugin {
 		final String prefix = destination.toLowerCase() + ":";
 		final String defaultPrefix = DEFAULT_DESTINATION + ":";
 
-		final BlockFace wellKnown = findWellKnownDestination(destination);
-		if (wellKnown != null) return wellKnown;
-
 		// Search through the sign lines for a valid, matching route
 		for (int i = 1; i < lines.length; i++) {
 			final String current = ChatColor.stripColor(lines[i]).toLowerCase().replaceAll(" ", "");
@@ -149,25 +146,6 @@ public class PdxTrackRouter extends JavaPlugin {
 			return dir;
 		}
 		return null;
-	}
-
-	/**
-	 * Identify "well-known" destinations an convert immediately to a direction.
-	 * @param destination Destination label
-	 * @return direction if destination is well-known, null otherwise
-	 */
-	private static BlockFace findWellKnownDestination(String destination) {
-		if (destination.equalsIgnoreCase("north")) {
-			return BlockFace.EAST;
-		} else if (destination.equalsIgnoreCase("east")) {
-			return BlockFace.SOUTH;
-		} else if (destination.equalsIgnoreCase("south")) {
-			return BlockFace.WEST;
-		} else if (destination.equalsIgnoreCase("west")) {
-			return BlockFace.NORTH;
-		} else {
-			return null;
-		}
 	}
 
 	/**
