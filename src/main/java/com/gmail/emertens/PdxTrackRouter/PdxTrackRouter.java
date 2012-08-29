@@ -33,14 +33,14 @@ public class PdxTrackRouter extends JavaPlugin {
 	private static String JUNCTION_HEADER = "[junction]";
 
 	/**
-	 * Store player destination preferences based on player name. 
+	 * Store player destination preferences based on player name.
 	 */
 	private Map<String,String> playerTargets = new HashMap<String, String>();
 
 	@Override
 	public void onEnable() {
 		PluginManager pm = getServer().getPluginManager();
-		
+
 		// Listen for mine cart events
 		TrackListener trackListener = new TrackListener(this, JUNCTION_HEADER);
 		pm.registerEvents(trackListener, this);
@@ -88,12 +88,12 @@ public class PdxTrackRouter extends JavaPlugin {
 	public void updateJunction(Entity preferenceEntity, Block block, BlockFace traveling, BlockFace open, String[] lines) {
 		String destination = entityToPreference(preferenceEntity);
 		BlockFace target = findDestination(destination, lines, traveling);
-		
+
 		// If no rule matches attempt to continue straight
 		if (target == null) {
 			target = traveling;
 		}
-		
+
 		BlockFace newDirection = computeJunction(traveling, open, target);
 		setRailDirection(block, newDirection);
 	}
@@ -112,7 +112,7 @@ public class PdxTrackRouter extends JavaPlugin {
 			return DEFAULT_DESTINATION;
 		}
 	}
-	
+
 	/**
 	 * Find a target direction given a junction sign line array and a destination name.
 	 * @param destination Destination label to search for
@@ -181,13 +181,13 @@ public class PdxTrackRouter extends JavaPlugin {
 	 * @return Direction the junction track should be positioned in.
 	 */
 	private BlockFace computeFourWayJunction(BlockFace direction, BlockFace target) {
-		
+
 		// Continuing straight through
 		if (direction == target) return direction;
-		
+
 		// Impossible to reverse direction
 		if (direction == BlockFaceUtils.opposite(target)) return null;
-		
+
 		// Compute a turn
 		return BlockFaceUtils.addFaces(direction, BlockFaceUtils.opposite(target));
 	}
@@ -201,11 +201,11 @@ public class PdxTrackRouter extends JavaPlugin {
 	public void updateFourWay(Entity preferenceEntity, Block block, BlockFace direction, String[] lines) {
 		final String destination = entityToPreference(preferenceEntity);
 		BlockFace target = findDestination(destination, lines, direction);
-		
+
 		// If no rules match attempt to proceed straight through
 		if (target == null) {
 			target = direction;
-		} 
+		}
 
 		final BlockFace newDirection = computeFourWayJunction(direction, target);
 		setRailDirection(block, newDirection);
@@ -224,11 +224,11 @@ public class PdxTrackRouter extends JavaPlugin {
 		} else {
 			destination = EMPTY_DESTINATION;
 		}
-		
+
 		if (destination == null) {
 			destination = DEFAULT_DESTINATION;
 		}
-		
+
 		return destination;
 	}
 

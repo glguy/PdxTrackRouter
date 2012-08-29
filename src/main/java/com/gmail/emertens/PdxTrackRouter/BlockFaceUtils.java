@@ -14,7 +14,7 @@ public class BlockFaceUtils {
 	 */
 	public static BlockFace[] cardinalDirections
 	  = new BlockFace[] {BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH};
-	
+
 	/**
 	 * The ordinal directions are north-east, south-east, south-west, and north-west.
 	 */
