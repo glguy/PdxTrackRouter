@@ -62,15 +62,16 @@ public class PdxTrackRouter extends JavaPlugin {
 		final Player player = (Player) sender;
 
 		if (command.getName().equalsIgnoreCase("destination")) {
-			switch (args.length) {
-			case 0:
+			if (args.length == 0) {
 				clearPlayerDestination(player, true);
 				return true;
-			case 1:
-				setPlayerDestination(player, args[0]);
+			} else {
+				StringBuilder builder = new StringBuilder();
+				for (String arg : args) {
+					builder.append(arg);
+				}
+				setPlayerDestination(player, builder.toString());
 				return true;
-			default:
-				return false;
 			}
 
 		} else if (command.getName().equalsIgnoreCase("changesign")
