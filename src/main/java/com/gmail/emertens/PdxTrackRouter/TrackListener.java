@@ -117,9 +117,9 @@ public class TrackListener implements Listener {
 
 		if (lines != null) {
 			if (openEnd == null) {
-				plugin.updateFourWay(preferenceEntity, block, direction, lines);
+				plugin.updateFourWayJunction(preferenceEntity, block, direction, lines);
 			} else {
-				plugin.updateJunction(preferenceEntity, block, direction,
+				plugin.updateThreeWayJunction(preferenceEntity, block, direction,
 						openEnd, lines);
 			}
 		}
@@ -138,68 +138,62 @@ public class TrackListener implements Listener {
 		return null;
 	}
 
-	private BlockFace computeNextRail(Block from, Block to, BlockFace traveling) {
-		if (traveling == null) return null;
+	private static BlockFace computeNextRail(Block from, Block to, BlockFace traveling) {
+
 		switch (traveling) {
 		case UP:
 			return railDirection(from);
 		case DOWN:
-			return BlockFaceUtils.opposite(railDirection(to));
+			final BlockFace toDir = railDirection(to);
+			if (toDir == null) return null;
+			return BlockFaceUtils.opposite(toDir);
 		case NORTH:
 		case SOUTH:
 		case EAST:
 		case WEST:
 			final BlockFace d = railDirection(to);
-			final BlockFace next = checkTurn(traveling, d);
-			if (next == null)
-				return traveling;
-			return next;
+			if (d == null) return null;
+			return checkTurn(traveling, d);
 		default:
 			return null;
 		}
 	}
 
+	/**
+	 * Compute the next block a player is likely to encounter when traveling
+	 * on a flat piece of track.
+	 * @param traveling The direction the player is traveling
+	 * @param track     The direction the track is facing
+	 * @return The direction the player will leave the track block
+	 */
 	private static BlockFace checkTurn(BlockFace traveling, BlockFace track) {
-		if (track == null) return null;
+
 		switch (track) {
 		case NORTH_EAST:
 			switch (traveling) {
-			case NORTH:
-				return BlockFace.WEST;
-			case EAST:
-				return BlockFace.SOUTH;
-			default:
-				return null;
+			case NORTH: return BlockFace.WEST;
+			case EAST:  return BlockFace.SOUTH;
+			default:    return traveling;
 			}
 		case NORTH_WEST:
 			switch (traveling) {
-			case NORTH:
-				return BlockFace.EAST;
-			case WEST:
-				return BlockFace.SOUTH;
-			default:
-				return null;
+			case NORTH: return BlockFace.EAST;
+			case WEST:  return BlockFace.SOUTH;
+			default:    return traveling;
 			}
 		case SOUTH_EAST:
 			switch (traveling) {
-			case SOUTH:
-				return BlockFace.WEST;
-			case EAST:
-				return BlockFace.NORTH;
-			default:
-				return null;
+			case SOUTH: return BlockFace.WEST;
+			case EAST:  return BlockFace.NORTH;
+			default:    return traveling;
 			}
 		case SOUTH_WEST:
 			switch (traveling) {
-			case SOUTH:
-				return BlockFace.EAST;
-			case WEST:
-				return BlockFace.NORTH;
-			default:
-				return null;
+			case SOUTH: return BlockFace.EAST;
+			case WEST:  return BlockFace.NORTH;
+			default:    return traveling;
 			}
-		default:
-			return null;
+		default:        return traveling;
 		}
 	}
 

@@ -27,7 +27,6 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public class PdxTrackRouter extends JavaPlugin {
 
-	private static final String EMPTY_DESTINATION = "empty";
 	private static final String DEFAULT_DESTINATION = "default";
 	private static String DESTINATION_HEADER = "[destination]";
 	private static String JUNCTION_HEADER = "[junction]";
@@ -85,16 +84,11 @@ public class PdxTrackRouter extends JavaPlugin {
 	 * @param open The direction which has no track
 	 * @param lines The concatenated lines of the junction sign stack
 	 */
-	public void updateJunction(Entity preferenceEntity, Block block, BlockFace traveling, BlockFace open, String[] lines) {
+	public void updateThreeWayJunction(Entity preferenceEntity, Block block, BlockFace traveling, BlockFace open, String[] lines) {
 		String destination = entityToPreference(preferenceEntity);
 		BlockFace target = findDestination(destination, lines, traveling);
-
-		// If no rule matches attempt to continue straight
-		if (target == null) {
-			target = traveling;
-		}
-
 		BlockFace newDirection = computeJunction(traveling, open, target);
+		if (newDirection == null) return;
 		setRailDirection(block, newDirection);
 	}
 
@@ -114,7 +108,8 @@ public class PdxTrackRouter extends JavaPlugin {
 	}
 
 	/**
-	 * Find a target direction given a junction sign line array and a destination name.
+	 * Find a target direction given a junction sign line array and a destination name. If no rules
+	 * match continue forward.
 	 * @param destination Destination label to search for
 	 * @param lines Lines of sign to search in
 	 * @param direction
@@ -145,7 +140,8 @@ public class PdxTrackRouter extends JavaPlugin {
 
 			return dir;
 		}
-		return null;
+		// If no rules match default to continuing forward.
+		return direction;
 	}
 
 	/**
@@ -198,16 +194,11 @@ public class PdxTrackRouter extends JavaPlugin {
 	 * @param block  Center block of the intersection
 	 * @param direction Direction player is traveling
 	 */
-	public void updateFourWay(Entity preferenceEntity, Block block, BlockFace direction, String[] lines) {
+	public void updateFourWayJunction(Entity preferenceEntity, Block block, BlockFace direction, String[] lines) {
 		final String destination = entityToPreference(preferenceEntity);
 		BlockFace target = findDestination(destination, lines, direction);
-
-		// If no rules match attempt to proceed straight through
-		if (target == null) {
-			target = direction;
-		}
-
 		final BlockFace newDirection = computeFourWayJunction(direction, target);
+		if (newDirection == null) return;
 		setRailDirection(block, newDirection);
 	}
 
@@ -218,12 +209,7 @@ public class PdxTrackRouter extends JavaPlugin {
 	 * @return The label of the preferred destination if found, default otherwise
 	 */
 	private String playerToDestination(Player player) {
-		String destination;
-		if (player != null) {
-			destination = playerTargets.get(player.getName());
-		} else {
-			destination = EMPTY_DESTINATION;
-		}
+		String destination = playerTargets.get(player.getName());
 
 		if (destination == null) {
 			destination = DEFAULT_DESTINATION;
@@ -238,13 +224,11 @@ public class PdxTrackRouter extends JavaPlugin {
 	 * @param newDirection new direction that rail should be set to
 	 */
 	private static void setRailDirection(Block block, BlockFace newDirection) {
-		if (newDirection != null) {
-			BlockState state = block.getState();
-			Rails rails = (Rails)state.getData();
-			rails.setDirection(newDirection, false);
-			state.setData(rails);
-			state.update();
-		}
+		BlockState state = block.getState();
+		Rails rails = (Rails) state.getData();
+		rails.setDirection(newDirection, false);
+		state.setData(rails);
+		state.update();
 	}
 
 	/**
