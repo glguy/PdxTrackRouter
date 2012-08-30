@@ -73,7 +73,7 @@ public class PlayerListener implements Listener {
 	public void onSignChange(SignChangeEvent event) {
 		final String header = event.getLine(0);
 		if (header.equalsIgnoreCase(junctionHeader) || header.equalsIgnoreCase(destinationHeader)) {
-			event.setLine(0, ChatColor.BLUE + header);
+			event.setLine(0, ChatColor.DARK_BLUE + header);
 		}
 	}
 }

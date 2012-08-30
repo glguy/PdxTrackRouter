@@ -7,6 +7,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
+import org.bukkit.block.Sign;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
@@ -53,27 +54,67 @@ public class PdxTrackRouter extends JavaPlugin {
 	public boolean onCommand(CommandSender sender, Command command,
 			String label, String[] args) {
 
-		final boolean success;
+		if (!(sender instanceof Player)) {
+			sender.sendMessage(ChatColor.RED
+					+ "This command can only be run by a player");
+			return true;
+		}
 
-		if (sender instanceof Player) {
-			Player player = (Player) sender;
+		final Player player = (Player) sender;
+
+		if (command.getName().equalsIgnoreCase("destination")) {
 			switch (args.length) {
 			case 0:
 				clearPlayerDestination(player);
-				success = true;
-				break;
+				return true;
 			case 1:
 				setPlayerDestination(player, args[0]);
-				success = true;
-				break;
+				return true;
 			default:
-				success = false;
+				return false;
 			}
-		} else {
-			success = true;
-			sender.sendMessage(ChatColor.RED + "This command can only be run by a player");
+
+		} else if (command.getName().equalsIgnoreCase("changesign")
+				&& args.length >= 1) {
+
+			try {
+				StringBuilder builder = new StringBuilder();
+				for (int i = 1; i < args.length; i++) {
+					if (i > 1) builder.append(' ');
+					builder.append(args[i]);
+				}
+
+				signChangeCommand(player, Integer.parseInt(args[0]), builder.toString());
+			} catch (NumberFormatException e) {
+				return false;
+			}
+			return true;
 		}
-		return success;
+		return false;
+	}
+
+	private static void signChangeCommand(Player player, int lineNo, String line) {
+		Block block = player.getTargetBlock(null, 10);
+
+		if (lineNo < 1 || lineNo > 4) {
+			player.sendMessage(ChatColor.RED + "Line number out of range");
+			return;
+		}
+
+		if (block == null) {
+			player.sendMessage(ChatColor.RED + "No sign in range");
+			return;
+		}
+
+		BlockState state = block.getState();
+		if (!(state instanceof Sign)) {
+			player.sendMessage(ChatColor.RED + "Selected block not a sign");
+			return;
+		}
+
+		Sign sign = (Sign) state;
+		sign.setLine(lineNo-1, ChatColor.translateAlternateColorCodes('&', line));
+		sign.update();
 	}
 
 	/**

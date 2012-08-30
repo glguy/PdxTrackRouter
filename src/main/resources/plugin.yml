@@ -10,3 +10,12 @@ commands:
   destination:
     description: Set destination to take at junctions
     usage: /<command> [DIRECTION]
+  changesign:
+    description: Set a line on a sign
+    usage: /<command> [1-4] TEXT
+    permission: trackrouter.changesign
+
+permissions:
+  trackrouter.changesign:
+    description: Change lines on signs in-place
+    default: op
