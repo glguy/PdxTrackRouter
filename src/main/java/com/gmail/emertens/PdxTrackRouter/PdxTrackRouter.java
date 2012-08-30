@@ -2,7 +2,6 @@ package com.gmail.emertens.PdxTrackRouter;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -65,7 +64,7 @@ public class PdxTrackRouter extends JavaPlugin {
 		if (command.getName().equalsIgnoreCase("destination")) {
 			switch (args.length) {
 			case 0:
-				clearPlayerDestination(player);
+				clearPlayerDestination(player, true);
 				return true;
 			case 1:
 				setPlayerDestination(player, args[0]);
@@ -80,7 +79,9 @@ public class PdxTrackRouter extends JavaPlugin {
 			try {
 				StringBuilder builder = new StringBuilder();
 				for (int i = 1; i < args.length; i++) {
-					if (i > 1) builder.append(' ');
+					if (i > 1) {
+						builder.append(' ');
+					}
 					builder.append(args[i]);
 				}
 
@@ -128,8 +129,12 @@ public class PdxTrackRouter extends JavaPlugin {
 	public void updateThreeWayJunction(Entity preferenceEntity, Block block, BlockFace traveling, BlockFace open, String[] lines) {
 		String destination = entityToPreference(preferenceEntity);
 		BlockFace target = findDestination(destination, lines, traveling);
+		
 		BlockFace newDirection = computeJunction(traveling, open, target);
-		if (newDirection == null) return;
+		if (newDirection == null) {
+			return;
+		}
+		
 		setRailDirection(block, newDirection);
 	}
 
@@ -177,7 +182,9 @@ public class PdxTrackRouter extends JavaPlugin {
 			final BlockFace dir = BlockFaceUtils.charToDirection(directionPart);
 
 			// Ignore invalid and unusable routes
-			if (dir == null || dir == BlockFaceUtils.opposite(direction)) continue;
+			if (dir == null || dir == BlockFaceUtils.opposite(direction)) {
+				continue;
+			}
 
 			return dir;
 		}
@@ -195,16 +202,24 @@ public class PdxTrackRouter extends JavaPlugin {
 	private static BlockFace computeJunction(BlockFace traveling, BlockFace open, BlockFace target) {
 
 		// You can't turn around
-		if (traveling == BlockFaceUtils.opposite(target)) return null;
+		if (traveling == BlockFaceUtils.opposite(target)) {
+			return null;
+		}
 
 		// You can't go off the tracks
-		if (target == open) return null;
+		if (target == open) {
+			return null;
+		}
 
 		// Heading into a T junction
-		if (traveling == open) return BlockFaceUtils.addFaces(BlockFaceUtils.opposite(target), open);
+		if (traveling == open) {
+			return BlockFaceUtils.addFaces(BlockFaceUtils.opposite(target), open);
+		}
 
 		// Continuing straight through a junction
-		if (traveling == target) return BlockFaceUtils.addFaces(BlockFaceUtils.opposite(target), open);
+		if (traveling == target) {
+			return BlockFaceUtils.addFaces(BlockFaceUtils.opposite(target), open);
+		}
 
 		// Turning into a junction
 		return BlockFaceUtils.addFaces(traveling, open);
@@ -220,10 +235,14 @@ public class PdxTrackRouter extends JavaPlugin {
 	private BlockFace computeFourWayJunction(BlockFace direction, BlockFace target) {
 
 		// Continuing straight through
-		if (direction == target) return direction;
+		if (direction == target) {
+			return direction;
+		}
 
 		// Impossible to reverse direction
-		if (direction == BlockFaceUtils.opposite(target)) return null;
+		if (direction == BlockFaceUtils.opposite(target)) {
+			return null;
+		}
 
 		// Compute a turn
 		return BlockFaceUtils.addFaces(direction, BlockFaceUtils.opposite(target));
@@ -238,8 +257,12 @@ public class PdxTrackRouter extends JavaPlugin {
 	public void updateFourWayJunction(Entity preferenceEntity, Block block, BlockFace direction, String[] lines) {
 		final String destination = entityToPreference(preferenceEntity);
 		BlockFace target = findDestination(destination, lines, direction);
+		
 		final BlockFace newDirection = computeFourWayJunction(direction, target);
-		if (newDirection == null) return;
+		if (newDirection == null) {
+			return;
+		}
+		
 		setRailDirection(block, newDirection);
 	}
 
@@ -275,11 +298,14 @@ public class PdxTrackRouter extends JavaPlugin {
 	/**
 	 * Clear the target destination for a given player.
 	 * @param player The player whose destination preference should be cleared
+	 * @param verbose Send player a message even if no destination was set
 	 */
-	public void clearPlayerDestination(Player player) {
+	public void clearPlayerDestination(Player player, boolean verbose) {
 		if (playerTargets.containsKey(player.getName())) {
 			playerTargets.remove(player.getName());
 			player.sendMessage(ChatColor.GREEN + "Destination cleared");
+		} else if (verbose) {
+			player.sendMessage(ChatColor.RED + "No destination set");
 		}
 	}
 

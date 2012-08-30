@@ -53,7 +53,9 @@ public class PlayerListener implements Listener {
 	@EventHandler(ignoreCancelled = true)
 	public void onPlayerInteract(PlayerInteractEvent event) {
 
-		if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+		if (event.getAction() != Action.RIGHT_CLICK_BLOCK) {
+			return;
+		}
 
 		Block block = event.getClickedBlock();
 		BlockState state = block.getState();

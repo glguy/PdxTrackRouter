@@ -1,24 +1,22 @@
 package com.gmail.emertens.PdxTrackRouter;
 
 import java.util.ArrayList;
-
 import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.StorageMinecart;
-import org.bukkit.entity.Vehicle;
-import org.bukkit.event.vehicle.VehicleExitEvent;
-import org.bukkit.event.vehicle.VehicleMoveEvent;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Vehicle;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.vehicle.VehicleExitEvent;
+import org.bukkit.event.vehicle.VehicleMoveEvent;
 import org.bukkit.material.MaterialData;
 import org.bukkit.material.Rails;
 
@@ -29,7 +27,6 @@ import org.bukkit.material.Rails;
  * @author Eric Mertens
  *
  */
-@SuppressWarnings("unused")
 public class TrackListener implements Listener {
 
 	private static BlockFace signStackDirection = BlockFace.UP;
@@ -70,21 +67,29 @@ public class TrackListener implements Listener {
 		BlockFace direction = from.getFace(to);
 
 		// Handle the common case early
-		if (direction == BlockFace.SELF || direction == null) return;
+		if (direction == BlockFace.SELF || direction == null) {
+			return;
+		}
+		
+		// Figure out where the minecart is likely to go next
 		direction = computeNextRail(from, to, direction);
-		if (direction == null) return;
+		if (direction == null) {
+			return;
+		}
 
 		final Block block = to.getRelative(direction);
-		if (block == null)
+		if (block == null) {
 			return;
+		}
 
 		// Only check when arriving at a rails block
-		if (block.getType() != Material.RAILS)
+		if (block.getType() != Material.RAILS) {
 			return;
+		}
 
 		// Check that this is a 3-way intersection with a junction sign
 		BlockFace openEnd = null;
-		String[] lines = null;
+		String[] lines = new String[] {};
 
 		// Verify that this block's neighbors are all rails
 		// or a junction sign stack, but nothing else.
@@ -106,16 +111,21 @@ public class TrackListener implements Listener {
 			}
 		}
 
-		Entity preferenceEntity;
+		final Vehicle vehicle = event.getVehicle();
+		final Entity passenger = vehicle.getPassenger();
 
-		Vehicle vehicle = event.getVehicle();
-		Entity passenger = vehicle.getPassenger();
+		// Base routing decisions on the identity of this entity
+		final Entity preferenceEntity = passenger == null ? vehicle : passenger;
 
-		preferenceEntity = passenger == null ? vehicle : passenger;
+		// Search the corners if this wasn't a 3-way junction with a sign at the
+		// open end of the junction.
+		if (lines.length == 0) {
+			lines = findCornerSigns(block);
+		}
 
-		if (lines == null) lines = findCornerSigns(block);
-
-		if (lines != null) {
+		// If a junction sign has been found, treat this as a plug-in controlled
+		// junction and report to the plug-in
+		if (lines.length != 0) {
 			if (openEnd == null) {
 				plugin.updateFourWayJunction(preferenceEntity, block, direction, lines);
 			} else {
@@ -125,10 +135,22 @@ public class TrackListener implements Listener {
 		}
 	}
 
+	/**
+	 * Check if block is a legal rail neighbor to a junction. Detector rails
+	 * are ignored because they would attempt to turn the track upon being
+	 * powered
+	 * @param m The material of the block to check
+	 * @return True if and only if the material is rails or powered rails
+	 */
 	private static boolean isRail(Material m) {
 		return m == Material.RAILS || m == Material.POWERED_RAIL;
 	}
 
+	/**
+	 * Return the orientation of a rail block, or null if it is not a rail
+	 * @param b Block to check orientation of
+	 * @return Orientation of rail block or null
+	 */
 	private static BlockFace railDirection(Block b) {
 		MaterialData d = b.getState().getData();
 		if (d instanceof Rails) {
@@ -140,20 +162,30 @@ public class TrackListener implements Listener {
 
 	private static BlockFace computeNextRail(Block from, Block to, BlockFace traveling) {
 
+		final BlockFace toDir;
+		
 		switch (traveling) {
 		case UP:
 			return railDirection(from);
 		case DOWN:
-			final BlockFace toDir = railDirection(to);
-			if (toDir == null) return null;
+			toDir = railDirection(to);
+			// If we are falling out of the sky guess we will continue to
+			if (toDir == null) {
+				return traveling;
+			}
 			return BlockFaceUtils.opposite(toDir);
 		case NORTH:
 		case SOUTH:
 		case EAST:
 		case WEST:
-			final BlockFace d = railDirection(to);
-			if (d == null) return null;
-			return checkTurn(traveling, d);
+			toDir = railDirection(to);
+			
+			// If we are not on a rail guess we will not turn
+			if (toDir == null) {
+				return traveling;
+			}
+			
+			return checkTurn(traveling, toDir);
 		default:
 			return null;
 		}
@@ -200,16 +232,21 @@ public class TrackListener implements Listener {
 	private static BlockFace[] signLocations = (BlockFace[]) ArrayUtils.add(
 			BlockFaceUtils.ordinalDirections, BlockFace.UP);
 
+	/**
+	 * Search the sign locations for a unique junction sign
+	 * @param block Center block to search from
+	 * @return Unique lines found or an empty array otherwise
+	 */
 	private String[] findCornerSigns(Block block) {
-		String[] result = null;
+		String[] result = new String[] {};
 		for (BlockFace d : signLocations) {
 			Block b = block.getRelative(d);
 			String[] lines = collectJunctionSignLines(b);
-			if (lines != null && lines.length != 0) {
-				if (result == null) {
+			if (lines.length != 0) {
+				if (result.length != 0) {
 					result = lines;
 				} else {
-					return null;
+					return new String[] {};
 				}
 			}
 		}
@@ -238,14 +275,14 @@ public class TrackListener implements Listener {
 			block = block.getRelative(signStackDirection);
 		}
 
-		final String[] result = stack.toArray(new String[] {});
+		final String[] result = stack.toArray(new String[stack.size()]);
 		ArrayUtils.reverse(result);
 
 		if (result.length != 0 &&
 		    ChatColor.stripColor(result[0]).equalsIgnoreCase(junctionHeader)) {
 			return result;
 		} else {
-			return null;
+			return new String[] {};
 		}
 	}
 
@@ -256,11 +293,15 @@ public class TrackListener implements Listener {
 	 */
 	@EventHandler(ignoreCancelled = true)
 	public void onVehicleExit(VehicleExitEvent event) {
-		if (event.getVehicle().getType() != EntityType.MINECART)
+		// Only handle minecart exits
+		if (event.getVehicle().getType() != EntityType.MINECART) {
 			return;
+		}
+		
+		// Only handle player exits
 		LivingEntity entity = event.getExited();
 		if (entity instanceof Player) {
-			plugin.clearPlayerDestination((Player) entity);
+			plugin.clearPlayerDestination((Player) entity, false);
 		}
 	}
 }

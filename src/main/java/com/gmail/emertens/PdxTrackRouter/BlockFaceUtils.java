@@ -27,7 +27,9 @@ public class BlockFaceUtils {
 	 * @return block face corresponding to game direction
 	 */
 	public static BlockFace charToDirection(String c) {
-		if (c.length() == 0) return null;
+		if (c.length() == 0) {
+			return null;
+		}
 		switch (Character.toUpperCase(c.charAt(0))) {
 		case 'N': return BlockFace.EAST;
 		case 'E': return BlockFace.SOUTH;
@@ -43,7 +45,9 @@ public class BlockFaceUtils {
 	 * @return The opposite direction
 	 */
 	public static BlockFace opposite(BlockFace a) {
-		if (a == null) return null;
+		if (a == null) {
+			return null;
+		}
 		switch (a) {
 		case NORTH: return BlockFace.SOUTH;
 		case SOUTH: return BlockFace.NORTH;
@@ -60,7 +64,9 @@ public class BlockFaceUtils {
 	 * @return An ordinal directions or null if there is none
 	 */
 	public static BlockFace addFaces(BlockFace a, BlockFace b) {
-		if (a == null || b == null) return null;
+		if (a == null || b == null) {
+			return null;
+		}
 		switch (a) {
 		case NORTH:
 			switch (b) {
