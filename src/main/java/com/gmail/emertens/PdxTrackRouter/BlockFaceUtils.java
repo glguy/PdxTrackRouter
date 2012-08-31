@@ -95,4 +95,33 @@ public class BlockFaceUtils {
 		default: return null;
 		}
 	}
+	
+	public static BlockFace turnFortyFiveDegreesCW(BlockFace b) {
+		switch (b) {
+			case NORTH: return BlockFace.NORTH_EAST;
+			case SOUTH: return BlockFace.SOUTH_WEST;
+			case EAST: return BlockFace.SOUTH_EAST;
+			case WEST: return BlockFace.NORTH_WEST;
+			case NORTH_EAST: return BlockFace.EAST;
+			case NORTH_WEST: return BlockFace.NORTH;
+			case SOUTH_EAST: return BlockFace.SOUTH;
+			case SOUTH_WEST: return BlockFace.WEST;
+		}
+		return null;
+	}
+
+	public static BlockFace turnFortyFiveDegreesCCW(BlockFace b) {
+		switch (b) {
+			case NORTH: return BlockFace.NORTH_WEST;
+			case SOUTH: return BlockFace.SOUTH_EAST;
+			case EAST: return BlockFace.NORTH_EAST;
+			case WEST: return BlockFace.SOUTH_WEST;
+			case NORTH_EAST: return BlockFace.NORTH;
+			case NORTH_WEST: return BlockFace.WEST;
+			case SOUTH_EAST: return BlockFace.EAST;
+			case SOUTH_WEST: return BlockFace.SOUTH;
+		}
+		return null;
+	}
+
 }

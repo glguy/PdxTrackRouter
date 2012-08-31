@@ -12,6 +12,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
+import org.bukkit.material.MaterialData;
 import org.bukkit.material.Rails;
 
 /**
@@ -72,10 +73,10 @@ public class Junction {
 		// or a junction sign stack, but nothing else.
 		for (BlockFace d : BlockFaceUtils.cardinalDirections) {
 			Block neighbor = block.getRelative(d);
-			Material m = neighbor.getType();
-			if (isRail(m)) {
+			if (isConnectedRail(neighbor,d)) {
 				continue;
-			} else if (m == Material.AIR && isRail(neighbor.getRelative(BlockFace.DOWN).getType())) {
+			} else if (neighbor.getType() == Material.AIR
+					&& isConnectedSlopeRail(neighbor.getRelative(BlockFace.DOWN), d)) {
 				// Look down hills
 				continue;
 			} else if (openEnd == null) {
@@ -176,5 +177,39 @@ public class Junction {
 		rails.setDirection(newDirection, false);
 		state.setData(rails);
 		state.update();
+	}
+
+
+
+	/**
+	 * Return the orientation of a rail block, or null if it is not a rail
+	 * @param b Block to check orientation of
+	 * @return Orientation of rail block or null
+	 */
+	public static BlockFace railDirection(Block b) {
+		MaterialData d = b.getState().getData();
+		if (d instanceof Rails) {
+			Rails r = (Rails) d;
+			return r.getDirection();
+		}
+		return null;
+	}
+
+	private static boolean isConnectedSlopeRail(Block b, BlockFace dir) {
+		MaterialData d = b.getState().getData();
+		if (d instanceof Rails) {
+			Rails r = (Rails) d;
+			return r.isOnSlope() && r.getDirection() == BlockFaceUtils.opposite(dir);
+		}
+		return false;
+	}
+	
+	private static boolean isConnectedRail(Block b, BlockFace dir) {
+		BlockFace blockDir = railDirection(b);
+		
+		return blockDir == dir
+				|| blockDir == BlockFaceUtils.opposite(dir)
+				|| blockDir == BlockFaceUtils.turnFortyFiveDegreesCCW(dir)
+				|| blockDir == BlockFaceUtils.turnFortyFiveDegreesCW(dir);
 	}
 }

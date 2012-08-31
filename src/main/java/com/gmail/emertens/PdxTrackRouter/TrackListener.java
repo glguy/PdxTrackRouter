@@ -90,29 +90,15 @@ public class TrackListener implements Listener {
 	}
 
 
-	/**
-	 * Return the orientation of a rail block, or null if it is not a rail
-	 * @param b Block to check orientation of
-	 * @return Orientation of rail block or null
-	 */
-	private static BlockFace railDirection(Block b) {
-		MaterialData d = b.getState().getData();
-		if (d instanceof Rails) {
-			Rails r = (Rails) d;
-			return r.getDirection();
-		}
-		return null;
-	}
-
 	private static BlockFace computeNextRail(Block from, Block to, BlockFace traveling) {
 
 		final BlockFace toDir;
 
 		switch (traveling) {
 		case UP:
-			return railDirection(from);
+			return Junction.railDirection(from);
 		case DOWN:
-			toDir = railDirection(to);
+			toDir = Junction.railDirection(to);
 			// If we are falling out of the sky guess we will continue to
 			if (toDir == null) {
 				return traveling;
@@ -122,7 +108,7 @@ public class TrackListener implements Listener {
 		case SOUTH:
 		case EAST:
 		case WEST:
-			toDir = railDirection(to);
+			toDir = Junction.railDirection(to);
 
 			// If we are not on a rail guess we will not turn
 			if (toDir == null) {
