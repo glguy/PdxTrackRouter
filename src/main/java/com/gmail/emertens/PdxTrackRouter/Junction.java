@@ -19,27 +19,21 @@ import org.bukkit.material.Rails;
  *
  * @author emertens
  */
-public class Junction {
+public final class Junction {
 	/**
 	 * Direction to search for stacked signs
 	 */
-	private static final BlockFace signStackDirection = BlockFace.UP;
+	private static final BlockFace SIGN_STACK_DIRECTION = BlockFace.UP;
 
 	/**
 	 * Locations to check for junction signs relative to the junction track
 	 */
-	private static final BlockFace[] signLocations = (BlockFace[]) ArrayUtils.add(
-			BlockFaceUtils.ordinalDirections, BlockFace.UP);
+	private static final BlockFace[] signLocations =
+		(BlockFace[]) ArrayUtils.add(BlockFaceUtils.ORDINAL_DIRECTIONS, BlockFace.UP);
 
 	private final String[] lines;
 	private final Block block;
 	private final BlockFace openSide;
-
-	public Junction(Block block, String[] lines) {
-		this.lines = lines;
-		this.block = block;
-		this.openSide = null;
-	}
 
 	public Junction(Block block, String[] lines, BlockFace openSide) {
 		this.lines = lines;
@@ -59,6 +53,11 @@ public class Junction {
 		return openSide;
 	}
 
+	/**
+	 * Construct a junction starting at a given block if possible.
+	 * @param block The candidate junction block
+	 * @return Junction object if block is a routed junction
+	 */
 	public static Junction makeJunction(Block block) {
 		// Only check when arriving at a rails block
 		if (block.getType() != Material.RAILS) {
@@ -67,11 +66,13 @@ public class Junction {
 
 		// Check that this is a 3-way intersection with a junction sign
 		BlockFace openEnd = null;
+
+		// Lines of the routing table
 		String[] lines = new String[] {};
 
 		// Verify that this block's neighbors are all rails
 		// or a junction sign stack, but nothing else.
-		for (BlockFace d : BlockFaceUtils.cardinalDirections) {
+		for (BlockFace d : BlockFaceUtils.CARDINAL_DIRECTIONS) {
 			Block neighbor = block.getRelative(d);
 			if (isConnectedRail(neighbor,d)) {
 				continue;
@@ -95,22 +96,12 @@ public class Junction {
 			lines = findCornerSigns(block);
 		}
 
+		// If there are no routing lines to be found, this is not a junction
 		if (lines.length == 0) {
 			return null;
 		}
 
 		return new Junction(block, lines, openEnd);
-	}
-
-	/**
-	 * Check if block is a legal rail neighbor to a junction. Detector rails
-	 * are ignored because they would attempt to turn the track upon being
-	 * powered
-	 * @param m The material of the block to check
-	 * @return True if and only if the material is rails or powered rails
-	 */
-	private static boolean isRail(Material m) {
-		return m == Material.RAILS || m == Material.POWERED_RAIL;
 	}
 
 	/**
@@ -120,9 +111,11 @@ public class Junction {
 	 */
 	private static String[] findCornerSigns(Block block) {
 		String[] result = new String[] {};
+
 		for (BlockFace d : signLocations) {
-			Block b = block.getRelative(d);
-			String[] lines = collectJunctionSignLines(b);
+			final Block b = block.getRelative(d);
+			final String[] lines = collectJunctionSignLines(b);
+
 			if (lines.length != 0) {
 				if (result.length == 0) {
 					result = lines;
@@ -147,23 +140,32 @@ public class Junction {
 		// Search upwards collecting all the sign lines
 		BlockState state;
 		while ((state = block.getState()) instanceof Sign) {
-			Sign sign = (Sign) state;
-			String[] lines = sign.getLines();
+			final Sign sign = (Sign) state;
+			final String[] lines = sign.getLines();
 			for (int i = lines.length - 1; i >= 0; i--) {
 				stack.add(lines[i]);
 			}
-			block = block.getRelative(signStackDirection);
+			block = block.getRelative(SIGN_STACK_DIRECTION);
 		}
+
+		if (stack.isEmpty()) {
+			return new String[] {};
+		}
+
+		// The top line is the last in the list due to searching from the bottom
+		final String topLine = ChatColor.stripColor(stack.get(stack.size()-1));
+
+		if (!PdxTrackRouter.JUNCTION_HEADER.equalsIgnoreCase(topLine)) {
+			return new String[] {};
+		}
+
+		// Removing the header will always leave at least 3 lines
+		stack.remove(stack.size()-1);
 
 		final String[] result = stack.toArray(new String[stack.size()]);
 		ArrayUtils.reverse(result);
 
-		if (result.length != 0 &&
-		    ChatColor.stripColor(result[0]).equalsIgnoreCase(PdxTrackRouter.JUNCTION_HEADER)) {
-			return result;
-		} else {
-			return new String[] {};
-		}
+		return result;
 	}
 
 	/**
@@ -171,42 +173,39 @@ public class Junction {
 	 * @param block A block which is a rail
 	 * @param newDirection new direction that rail should be set to
 	 */
-	public void setRailDirection(BlockFace newDirection) {
-		BlockState state = block.getState();
-		Rails rails = (Rails) state.getData();
+	public void setRailDirection(final BlockFace newDirection) {
+		final BlockState state = block.getState();
+		final Rails rails = (Rails) state.getData();
 		rails.setDirection(newDirection, false);
 		state.setData(rails);
 		state.update();
 	}
-
-
 
 	/**
 	 * Return the orientation of a rail block, or null if it is not a rail
 	 * @param b Block to check orientation of
 	 * @return Orientation of rail block or null
 	 */
-	public static BlockFace railDirection(Block b) {
-		MaterialData d = b.getState().getData();
+	public static BlockFace railDirection(final Block b) {
+		final MaterialData d = b.getState().getData();
 		if (d instanceof Rails) {
-			Rails r = (Rails) d;
+			final Rails r = (Rails) d;
 			return r.getDirection();
 		}
 		return null;
 	}
 
-	private static boolean isConnectedSlopeRail(Block b, BlockFace dir) {
-		MaterialData d = b.getState().getData();
+	private static boolean isConnectedSlopeRail(final Block b, final BlockFace dir) {
+		final MaterialData d = b.getState().getData();
 		if (d instanceof Rails) {
-			Rails r = (Rails) d;
+			final Rails r = (Rails) d;
 			return r.isOnSlope() && r.getDirection() == BlockFaceUtils.opposite(dir);
 		}
 		return false;
 	}
-	
-	private static boolean isConnectedRail(Block b, BlockFace dir) {
-		BlockFace blockDir = railDirection(b);
-		
+
+	private static boolean isConnectedRail(final Block b, final BlockFace dir) {
+		final BlockFace blockDir = railDirection(b);
 		return blockDir == dir
 				|| blockDir == BlockFaceUtils.opposite(dir)
 				|| blockDir == BlockFaceUtils.turnFortyFiveDegreesCCW(dir)

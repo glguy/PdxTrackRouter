@@ -17,11 +17,11 @@ import org.bukkit.event.player.PlayerInteractEvent;
  * the plug-in when a player uses such a sign.
  * @author Eric Mertens
  */
-public class PlayerListener implements Listener {
+public final class PlayerListener implements Listener {
 
-	private PdxTrackRouter plugin;
+	private final PdxTrackRouter plugin;
 
-	public PlayerListener(PdxTrackRouter p) {
+	public PlayerListener(final PdxTrackRouter p) {
 		plugin = p;
 	}
 
@@ -30,11 +30,11 @@ public class PlayerListener implements Listener {
 	 * @param event
 	 */
 	@EventHandler(ignoreCancelled = true)
-	public void onBlockPlace(BlockPlaceEvent event) {
-		Block block = event.getBlockAgainst();
-		BlockState state = block.getState();
+	public void onBlockPlace(final BlockPlaceEvent event) {
+		final Block block = event.getBlockAgainst();
+		final BlockState state = block.getState();
 		if (state instanceof Sign) {
-			Sign sign = (Sign)state;
+			final Sign sign = (Sign)state;
 
 			if (PdxTrackRouter.DESTINATION_HEADER.equalsIgnoreCase(ChatColor.stripColor(sign.getLine(0)))) {
 				event.setCancelled(true);
@@ -47,16 +47,16 @@ public class PlayerListener implements Listener {
 	 * @param event
 	 */
 	@EventHandler(ignoreCancelled = true)
-	public void onPlayerInteract(PlayerInteractEvent event) {
+	public void onPlayerInteract(final PlayerInteractEvent event) {
 
 		if (event.getAction() != Action.RIGHT_CLICK_BLOCK) {
 			return;
 		}
 
-		Block block = event.getClickedBlock();
-		BlockState state = block.getState();
+		final Block block = event.getClickedBlock();
+		final BlockState state = block.getState();
 		if (state instanceof Sign) {
-			Sign sign = (Sign)state;
+			final Sign sign = (Sign)state;
 
 			if (PdxTrackRouter.DESTINATION_HEADER.equalsIgnoreCase(ChatColor.stripColor(sign.getLine(0)))) {
 				plugin.setPlayerDestination(event.getPlayer(), sign.getLine(1));
@@ -68,7 +68,7 @@ public class PlayerListener implements Listener {
 	 * Change command sign headers to blue to give users a sense of feedback
 	 */
 	@EventHandler(ignoreCancelled = true)
-	public void onSignChange(SignChangeEvent event) {
+	public void onSignChange(final SignChangeEvent event) {
 		final String header = event.getLine(0);
 		if (PdxTrackRouter.JUNCTION_HEADER.equalsIgnoreCase(header)
 				|| PdxTrackRouter.DESTINATION_HEADER.equalsIgnoreCase(header)) {

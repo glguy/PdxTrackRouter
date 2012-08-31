@@ -7,18 +7,18 @@ import org.bukkit.block.BlockFace;
  * as compass directions.
  * @author Eric Mertens
  */
-public class BlockFaceUtils {
+public final class BlockFaceUtils {
 
 	/**
 	 * The cardinal directions are north, east, south, and west.
 	 */
-	public static final BlockFace[] cardinalDirections
+	public static final BlockFace[] CARDINAL_DIRECTIONS
 	  = new BlockFace[] {BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH};
 
 	/**
 	 * The ordinal directions are north-east, south-east, south-west, and north-west.
 	 */
-	public static final BlockFace[] ordinalDirections
+	public static final BlockFace[] ORDINAL_DIRECTIONS
 	  = new BlockFace[] {BlockFace.NORTH_EAST, BlockFace.SOUTH_EAST, BlockFace.NORTH_WEST, BlockFace.SOUTH_WEST};
 
 	/**
@@ -26,7 +26,7 @@ public class BlockFaceUtils {
 	 * @param c String describing a direction
 	 * @return block face corresponding to game direction
 	 */
-	public static BlockFace charToDirection(String c) {
+	public static BlockFace charToDirection(final String c) {
 		if (c.length() == 0) {
 			return null;
 		}
@@ -44,7 +44,7 @@ public class BlockFaceUtils {
 	 * @param a A cardinal direction
 	 * @return The opposite direction
 	 */
-	public static BlockFace opposite(BlockFace a) {
+	public static BlockFace opposite(final BlockFace a) {
 		if (a == null) {
 			return null;
 		}
@@ -63,7 +63,7 @@ public class BlockFaceUtils {
 	 * @param b A cardinal direction
 	 * @return An ordinal directions or null if there is none
 	 */
-	public static BlockFace addFaces(BlockFace a, BlockFace b) {
+	public static BlockFace addFaces(final BlockFace a, final BlockFace b) {
 		if (a == null || b == null) {
 			return null;
 		}
@@ -96,7 +96,7 @@ public class BlockFaceUtils {
 		}
 	}
 	
-	public static BlockFace turnFortyFiveDegreesCW(BlockFace b) {
+	public static BlockFace turnFortyFiveDegreesCW(final BlockFace b) {
 		switch (b) {
 			case NORTH: return BlockFace.NORTH_EAST;
 			case SOUTH: return BlockFace.SOUTH_WEST;
@@ -110,7 +110,7 @@ public class BlockFaceUtils {
 		return null;
 	}
 
-	public static BlockFace turnFortyFiveDegreesCCW(BlockFace b) {
+	public static BlockFace turnFortyFiveDegreesCCW(final BlockFace b) {
 		switch (b) {
 			case NORTH: return BlockFace.NORTH_WEST;
 			case SOUTH: return BlockFace.SOUTH_EAST;

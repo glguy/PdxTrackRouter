@@ -11,8 +11,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.bukkit.event.vehicle.VehicleMoveEvent;
-import org.bukkit.material.MaterialData;
-import org.bukkit.material.Rails;
 
 /**
  * This listener catches vehicle move events which correspond arriving at a
@@ -21,7 +19,7 @@ import org.bukkit.material.Rails;
  * @author Eric Mertens
  *
  */
-public class TrackListener implements Listener {
+public final class TrackListener implements Listener {
 
 
 

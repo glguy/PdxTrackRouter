@@ -14,7 +14,6 @@ import org.bukkit.entity.Minecart;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.PoweredMinecart;
 import org.bukkit.entity.StorageMinecart;
-import org.bukkit.material.Rails;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -25,11 +24,14 @@ import org.bukkit.plugin.java.JavaPlugin;
  *
  * @author Eric Mertens
  */
-public class PdxTrackRouter extends JavaPlugin {
+public final class PdxTrackRouter extends JavaPlugin {
 
 	private static final String DEFAULT_DESTINATION = "default";
-	public static String DESTINATION_HEADER = "[destination]";
-	public static String JUNCTION_HEADER = "[junction]";
+	private static final String EMPTY_DESTINATION = "empty";
+	private static final String CHEST_DESTINATION = "chest";
+	private static final String ENGINE_DESTINATION = "engine";
+	public static final String DESTINATION_HEADER = "[destination]";
+	public static final String JUNCTION_HEADER = "[junction]";
 
 	/**
 	 * Store player destination preferences based on player name.
@@ -95,7 +97,7 @@ public class PdxTrackRouter extends JavaPlugin {
 		return false;
 	}
 
-	private static void signChangeCommand(Player player, int lineNo, String line) {
+	private static void signChangeCommand(final Player player, final int lineNo, final String line) {
 		Block block = player.getTargetBlock(null, 10);
 
 		if (lineNo < 1 || lineNo > 4) {
@@ -119,16 +121,16 @@ public class PdxTrackRouter extends JavaPlugin {
 		sign.update();
 	}
 
-	private String entityToPreference(Entity entity) {
+	private String entityToPreference(final Entity entity) {
 		if (entity instanceof Player) {
 			Player player = (Player)entity;
 			return playerToDestination(player);
 		} else if (entity instanceof StorageMinecart) {
-			return "chest";
+			return CHEST_DESTINATION;
 		} else if (entity instanceof PoweredMinecart) {
-			return "engine";
+			return ENGINE_DESTINATION;
 		} else if (entity instanceof Minecart) {
-			return "empty";
+			return EMPTY_DESTINATION;
 		} else {
 			return DEFAULT_DESTINATION;
 		}
@@ -142,13 +144,13 @@ public class PdxTrackRouter extends JavaPlugin {
 	 * @param direction
 	 * @return first matching direction or first default direction
 	 */
-	private static BlockFace findDestination(String destination, String[] lines, BlockFace direction) {
+	private static BlockFace findDestination(final String destination, final String[] lines, final BlockFace direction) {
 		final String prefix = normalizeDestination(destination) + ":";
 		final String defaultPrefix = DEFAULT_DESTINATION + ":";
 
 		// Search through the sign lines for a valid, matching route
-		for (int i = 1; i < lines.length; i++) {
-			final String current = normalizeDestination(lines[i]);
+		for (String line : lines) {
+			final String current = normalizeDestination(line);
 			final int prefixLength;
 
 			if (current.startsWith(prefix)) {
@@ -180,7 +182,7 @@ public class PdxTrackRouter extends JavaPlugin {
 	 * @param target The direction the player wants to go
 	 * @return The direction the track should be changed to
 	 */
-	private static BlockFace computeJunction(BlockFace traveling, BlockFace open, BlockFace target) {
+	private static BlockFace computeJunction(final BlockFace traveling, final BlockFace open, final BlockFace target) {
 
 		// You can't turn around
 		if (traveling == BlockFaceUtils.opposite(target)) {
@@ -213,7 +215,7 @@ public class PdxTrackRouter extends JavaPlugin {
 	 * @param target Direction player wants to be moving
 	 * @return Direction the junction track should be positioned in.
 	 */
-	private BlockFace computeFourWayJunction(BlockFace direction, BlockFace target) {
+	private BlockFace computeFourWayJunction(final BlockFace direction, final BlockFace target) {
 
 		// Continuing straight through
 		if (direction == target) {
@@ -235,7 +237,7 @@ public class PdxTrackRouter extends JavaPlugin {
 	 * @param player Player in the cart or null for empty carts
 	 * @return The label of the preferred destination if found, default otherwise
 	 */
-	private String playerToDestination(Player player) {
+	private String playerToDestination(final Player player) {
 		String destination = playerTargets.get(player.getName());
 
 		if (destination == null) {
@@ -251,7 +253,7 @@ public class PdxTrackRouter extends JavaPlugin {
 	 * @param player The player whose destination preference should be cleared
 	 * @param verbose Send player a message even if no destination was set
 	 */
-	public void clearPlayerDestination(Player player, boolean verbose) {
+	public void clearPlayerDestination(final Player player, final boolean verbose) {
 		if (playerTargets.containsKey(player.getName())) {
 			playerTargets.remove(player.getName());
 			player.sendMessage(ChatColor.GREEN + "Destination cleared");
@@ -265,7 +267,7 @@ public class PdxTrackRouter extends JavaPlugin {
 	 * @param player The player whose destination should be set
 	 * @param destination The destination to set for the player
 	 */
-	public void setPlayerDestination(Player player, String destination) {
+	public void setPlayerDestination(final Player player, final String destination) {
 		final String uncolored = ChatColor.stripColor(destination);
 		final String normalized = normalizeDestination(uncolored);
 		playerTargets.put(player.getName(), normalized);
@@ -273,11 +275,11 @@ public class PdxTrackRouter extends JavaPlugin {
 				+ ChatColor.YELLOW + uncolored);
 	}
 
-	private static String normalizeDestination(String input) {
+	private static String normalizeDestination(final String input) {
 		return ChatColor.stripColor(input).replaceAll(" ", "").toLowerCase();
 	}
 
-	void updateJunction(Entity preferenceEntity, Junction junction, BlockFace traveling) {
+	void updateJunction(final Entity preferenceEntity, final Junction junction, final BlockFace traveling) {
 		String destination = entityToPreference(preferenceEntity);
 		BlockFace target = findDestination(destination, junction.getLines(), traveling);
 
