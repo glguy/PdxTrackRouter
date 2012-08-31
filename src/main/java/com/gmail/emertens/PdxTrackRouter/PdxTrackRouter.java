@@ -40,7 +40,7 @@ public final class PdxTrackRouter extends JavaPlugin {
 
 	@Override
 	public void onEnable() {
-		PluginManager pm = getServer().getPluginManager();
+		final PluginManager pm = getServer().getPluginManager();
 
 		// Listen for mine cart events
 		TrackListener trackListener = new TrackListener(this);
@@ -52,8 +52,8 @@ public final class PdxTrackRouter extends JavaPlugin {
 	}
 
 	@Override
-	public boolean onCommand(CommandSender sender, Command command,
-			String label, String[] args) {
+	public boolean onCommand(final CommandSender sender, final Command command,
+			final String label, final String[] args) {
 
 		if (!(sender instanceof Player)) {
 			sender.sendMessage(ChatColor.RED
@@ -66,16 +66,13 @@ public final class PdxTrackRouter extends JavaPlugin {
 		if (command.getName().equalsIgnoreCase("destination")) {
 			if (args.length == 0) {
 				clearPlayerDestination(player, true);
-				return true;
 			} else {
 				StringBuilder builder = new StringBuilder();
 				for (String arg : args) {
 					builder.append(arg);
 				}
 				setPlayerDestination(player, builder.toString());
-				return true;
 			}
-
 		} else if (command.getName().equalsIgnoreCase("changesign")
 				&& args.length >= 1) {
 
@@ -92,9 +89,10 @@ public final class PdxTrackRouter extends JavaPlugin {
 			} catch (NumberFormatException e) {
 				return false;
 			}
-			return true;
+		} else {
+			return false;
 		}
-		return false;
+		return true;
 	}
 
 	private static void signChangeCommand(final Player player, final int lineNo, final String line) {
@@ -116,14 +114,19 @@ public final class PdxTrackRouter extends JavaPlugin {
 			return;
 		}
 
-		Sign sign = (Sign) state;
+		final Sign sign = (Sign) state;
 		sign.setLine(lineNo-1, ChatColor.translateAlternateColorCodes('&', line));
 		sign.update();
 	}
 
+	/**
+	 * Determine the destination for a given entity
+	 * @param entity Entity to find the destination for
+	 * @return A normalized destination for that entity
+	 */
 	private String entityToPreference(final Entity entity) {
 		if (entity instanceof Player) {
-			Player player = (Player)entity;
+			final Player player = (Player)entity;
 			return playerToDestination(player);
 		} else if (entity instanceof StorageMinecart) {
 			return CHEST_DESTINATION;
@@ -161,15 +164,15 @@ public final class PdxTrackRouter extends JavaPlugin {
 				continue;
 			}
 
-			final String directionPart = current.substring(prefixLength).trim();
-			final BlockFace dir = BlockFaceUtils.charToDirection(directionPart);
+			final String directionPart = current.substring(prefixLength);
+			final BlockFace routeDir = BlockFaceUtils.charToDirection(directionPart);
 
 			// Ignore invalid and unusable routes
-			if (dir == null || dir == BlockFaceUtils.opposite(direction)) {
+			if (routeDir == null || routeDir == BlockFaceUtils.opposite(direction)) {
 				continue;
 			}
 
-			return dir;
+			return routeDir;
 		}
 		// If no rules match default to continuing forward.
 		return direction;
@@ -247,7 +250,6 @@ public final class PdxTrackRouter extends JavaPlugin {
 		return destination;
 	}
 
-
 	/**
 	 * Clear the target destination for a given player.
 	 * @param player The player whose destination preference should be cleared
@@ -275,15 +277,21 @@ public final class PdxTrackRouter extends JavaPlugin {
 				+ ChatColor.YELLOW + uncolored);
 	}
 
+	/**
+	 * Normalize text to remove all whitespace and color codes to make comparisons
+	 * between commands and various signs more likely to match.
+	 * @param input String to be normalized
+	 * @return Normalized version of input
+	 */
 	private static String normalizeDestination(final String input) {
 		return ChatColor.stripColor(input).replaceAll(" ", "").toLowerCase();
 	}
 
 	void updateJunction(final Entity preferenceEntity, final Junction junction, final BlockFace traveling) {
-		String destination = entityToPreference(preferenceEntity);
-		BlockFace target = findDestination(destination, junction.getLines(), traveling);
-
+		final String destination = entityToPreference(preferenceEntity);
+		final BlockFace target = findDestination(destination, junction.getLines(), traveling);
 		final BlockFace open = junction.getOpenSide();
+
 		final BlockFace newDirection;
 		if (open == null) {
 			newDirection = computeFourWayJunction(traveling, target);
@@ -291,10 +299,8 @@ public final class PdxTrackRouter extends JavaPlugin {
 			newDirection = computeJunction(traveling, open, target);
 		}
 
-		if (newDirection == null) {
-			return;
+		if (newDirection != null) {
+			junction.setRailDirection(newDirection);
 		}
-
-		junction.setRailDirection(newDirection);
 	}
 }
