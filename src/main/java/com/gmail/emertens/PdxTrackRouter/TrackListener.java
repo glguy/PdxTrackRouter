@@ -29,17 +29,26 @@ import org.bukkit.material.Rails;
  */
 public class TrackListener implements Listener {
 
-	private static BlockFace signStackDirection = BlockFace.UP;
+	/**
+	 * Direction to search for stacked signs
+	 */
+	private static final BlockFace signStackDirection = BlockFace.UP;
 
+	/**
+	 * Locations to check for junction signs relative to the junction track
+	 */
+	private static final BlockFace[] signLocations = (BlockFace[]) ArrayUtils.add(
+			BlockFaceUtils.ordinalDirections, BlockFace.UP);
+	
 	/**
 	 * Plug-in to notify when events happen.
 	 */
-	private PdxTrackRouter plugin;
+	private final PdxTrackRouter plugin;
 
 	/**
 	 * String to match against when checking for junction signs.
 	 */
-	private String junctionHeader;
+	private final String junctionHeader;
 
 	/**
 	 * Construct a new TrackListener
@@ -64,20 +73,20 @@ public class TrackListener implements Listener {
 
 		final Block from = event.getFrom().getBlock();
 		final Block to = event.getTo().getBlock();
-		BlockFace direction = from.getFace(to);
+		final BlockFace currentDirection = from.getFace(to);
 
 		// Handle the common case early
-		if (direction == BlockFace.SELF || direction == null) {
+		if (currentDirection == BlockFace.SELF || currentDirection == null) {
 			return;
 		}
 		
 		// Figure out where the minecart is likely to go next
-		direction = computeNextRail(from, to, direction);
-		if (direction == null) {
+		final BlockFace nextDirection = computeNextRail(from, to, currentDirection);
+		if (nextDirection == null) {
 			return;
 		}
 
-		final Block block = to.getRelative(direction);
+		final Block block = to.getRelative(nextDirection);
 		if (block == null) {
 			return;
 		}
@@ -127,9 +136,9 @@ public class TrackListener implements Listener {
 		// junction and report to the plug-in
 		if (lines.length != 0) {
 			if (openEnd == null) {
-				plugin.updateFourWayJunction(preferenceEntity, block, direction, lines);
+				plugin.updateFourWayJunction(preferenceEntity, block, currentDirection, lines);
 			} else {
-				plugin.updateThreeWayJunction(preferenceEntity, block, direction,
+				plugin.updateThreeWayJunction(preferenceEntity, block, currentDirection,
 						openEnd, lines);
 			}
 		}
@@ -228,9 +237,6 @@ public class TrackListener implements Listener {
 		default:        return traveling;
 		}
 	}
-
-	private static BlockFace[] signLocations = (BlockFace[]) ArrayUtils.add(
-			BlockFaceUtils.ordinalDirections, BlockFace.UP);
 
 	/**
 	 * Search the sign locations for a unique junction sign

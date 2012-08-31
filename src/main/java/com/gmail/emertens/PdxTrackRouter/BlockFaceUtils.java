@@ -12,13 +12,13 @@ public class BlockFaceUtils {
 	/**
 	 * The cardinal directions are north, east, south, and west.
 	 */
-	public static BlockFace[] cardinalDirections
+	public static final BlockFace[] cardinalDirections
 	  = new BlockFace[] {BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH};
 
 	/**
 	 * The ordinal directions are north-east, south-east, south-west, and north-west.
 	 */
-	public static BlockFace[] ordinalDirections
+	public static final BlockFace[] ordinalDirections
 	  = new BlockFace[] {BlockFace.NORTH_EAST, BlockFace.SOUTH_EAST, BlockFace.NORTH_WEST, BlockFace.SOUTH_WEST};
 
 	/**
