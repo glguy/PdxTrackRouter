@@ -20,13 +20,9 @@ import org.bukkit.event.player.PlayerInteractEvent;
 public class PlayerListener implements Listener {
 
 	private PdxTrackRouter plugin;
-	private String destinationHeader;
-	private String junctionHeader;
 
-	public PlayerListener(PdxTrackRouter p, String destination, String junction) {
+	public PlayerListener(PdxTrackRouter p) {
 		plugin = p;
-		this.destinationHeader = destination;
-		this.junctionHeader = junction;
 	}
 
 	/**
@@ -40,7 +36,7 @@ public class PlayerListener implements Listener {
 		if (state instanceof Sign) {
 			Sign sign = (Sign)state;
 
-			if (destinationHeader.equalsIgnoreCase(ChatColor.stripColor(sign.getLine(0)))) {
+			if (PdxTrackRouter.DESTINATION_HEADER.equalsIgnoreCase(ChatColor.stripColor(sign.getLine(0)))) {
 				event.setCancelled(true);
 			}
 		}
@@ -62,8 +58,8 @@ public class PlayerListener implements Listener {
 		if (state instanceof Sign) {
 			Sign sign = (Sign)state;
 
-			if (destinationHeader.equalsIgnoreCase(ChatColor.stripColor(sign.getLine(0)))) {
-				plugin.setPlayerDestination(event.getPlayer(), ChatColor.stripColor(sign.getLine(1)));
+			if (PdxTrackRouter.DESTINATION_HEADER.equalsIgnoreCase(ChatColor.stripColor(sign.getLine(0)))) {
+				plugin.setPlayerDestination(event.getPlayer(), sign.getLine(1));
 			}
 		}
 	}
@@ -74,7 +70,8 @@ public class PlayerListener implements Listener {
 	@EventHandler(ignoreCancelled = true)
 	public void onSignChange(SignChangeEvent event) {
 		final String header = event.getLine(0);
-		if (header.equalsIgnoreCase(junctionHeader) || header.equalsIgnoreCase(destinationHeader)) {
+		if (PdxTrackRouter.JUNCTION_HEADER.equalsIgnoreCase(header)
+				|| PdxTrackRouter.DESTINATION_HEADER.equalsIgnoreCase(header)) {
 			event.setLine(0, ChatColor.DARK_BLUE + header);
 		}
 	}
