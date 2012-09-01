@@ -21,8 +21,6 @@ import org.bukkit.event.vehicle.VehicleMoveEvent;
  */
 public final class TrackListener implements Listener {
 
-
-
 	/**
 	 * Plug-in to notify when events happen.
 	 */
@@ -69,7 +67,6 @@ public final class TrackListener implements Listener {
 		}
 
 		Junction junction = Junction.makeJunction(block);
-
 		if (junction == null) {
 			return;
 		}
@@ -79,7 +76,6 @@ public final class TrackListener implements Listener {
 
 		// Base routing decisions on the identity of this entity
 		final Entity preferenceEntity = passenger == null ? vehicle : passenger;
-
 
 		// If a junction sign has been found, treat this as a plug-in controlled
 		// junction and report to the plug-in
@@ -156,8 +152,6 @@ public final class TrackListener implements Listener {
 		default:        return traveling;
 		}
 	}
-
-
 
 	/**
 	 * Reset players' destinations upon departing a mine cart.
