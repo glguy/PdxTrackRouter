@@ -1,4 +1,4 @@
-package com.gmail.emertens.PdxTrackRouter;
+package com.gmail.emertens.pdxtrackrouter;
 
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;

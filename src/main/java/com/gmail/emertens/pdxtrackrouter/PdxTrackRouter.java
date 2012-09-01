@@ -1,4 +1,4 @@
-package com.gmail.emertens.PdxTrackRouter;
+package com.gmail.emertens.pdxtrackrouter;
 
 import java.util.HashMap;
 import java.util.Map;
