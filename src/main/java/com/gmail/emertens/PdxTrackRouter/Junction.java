@@ -21,12 +21,13 @@ import org.bukkit.material.Rails;
  */
 public final class Junction {
 	/**
-	 * Direction to search for stacked signs
+	 * Direction that junction signs can be stacked
 	 */
 	private static final BlockFace SIGN_STACK_DIRECTION = BlockFace.UP;
 
 	/**
-	 * Locations to check for junction signs relative to the junction track
+	 * Locations relative to a junction rail which can contain
+	 * junction signs.
 	 */
 	private static final BlockFace[] signLocations =
 		(BlockFace[]) ArrayUtils.add(BlockFaceUtils.ORDINAL_DIRECTIONS, BlockFace.UP);
@@ -35,20 +36,32 @@ public final class Junction {
 	private final Block block;
 	private final BlockFace openSide;
 
+	/**
+	 * Class constructor specifying junction block, routing lines, and open face.
+	 * @param block the rails block of the junction
+	 * @param lines the lines of the routing signs
+	 * @param openSide The face corresponding to the open end of the
+	 *                 junction, if one exists; null otherwise.
+	 */
 	public Junction(Block block, String[] lines, BlockFace openSide) {
 		this.lines = lines;
 		this.block = block;
 		this.openSide = openSide;
 	}
 
-	public Block getBlock() {
-		return block;
-	}
-
+	/**
+	 * Returns the lines of the routing signs for this junction.
+	 * @returns the lines of the routing signs for this junction
+	 */
 	public String[] getLines() {
 		return lines;
 	}
 
+	/**
+	 * Returns the open face of the junction for 3-day junctions,
+	 * otherwise returns null for 4-way junctions.
+	 * @returns the open face of the junction if one exists
+	 */
 	public BlockFace getOpenSide() {
 		return openSide;
 	}

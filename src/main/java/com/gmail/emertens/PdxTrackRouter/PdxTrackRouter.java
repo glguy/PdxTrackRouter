@@ -34,7 +34,7 @@ public final class PdxTrackRouter extends JavaPlugin {
 	public static final String JUNCTION_HEADER = "[junction]";
 
 	/**
-	 * Store player destination preferences based on player name.
+	 * Mapping from player names to destination preference.
 	 */
 	private Map<String,String> playerTargets = new HashMap<String, String>();
 
@@ -287,7 +287,14 @@ public final class PdxTrackRouter extends JavaPlugin {
 		return ChatColor.stripColor(input).replaceAll(" ", "").toLowerCase();
 	}
 
-	void updateJunction(final Entity preferenceEntity, final Junction junction, final BlockFace traveling) {
+	/**
+	 * Reconfigure a junction based on an entity's destination preference
+	 * and travel direction.
+	 * @param preferenceEntity Entity used to compute direction preference
+	 * @param junction Junction to be updated
+	 * @param traveling Direction the entity will travel into the junction
+	 */
+	public void updateJunction(final Entity preferenceEntity, final Junction junction, final BlockFace traveling) {
 		final String destination = entityToPreference(preferenceEntity);
 		final BlockFace target = findDestination(destination, junction.getLines(), traveling);
 		final BlockFace open = junction.getOpenSide();
