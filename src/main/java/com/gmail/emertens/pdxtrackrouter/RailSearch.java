@@ -16,10 +16,10 @@ import org.bukkit.material.Rails;
 import org.bukkit.plugin.Plugin;
 
 final class RailVector {
-	private final Object a;
-	private final Object b;
+	private final Block a;
+	private final BlockFace b;
 
-	public RailVector(Object a, Object b) {
+	public RailVector(Block a, BlockFace b) {
 		this.a = a;
 		this.b = b;
 	}
