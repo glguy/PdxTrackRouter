@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -14,21 +15,21 @@ import org.bukkit.material.MaterialData;
 import org.bukkit.material.Rails;
 import org.bukkit.plugin.Plugin;
 
-final class Pair {
+final class RailVector {
 	private final Object a;
 	private final Object b;
 
-	public Pair(Object a, Object b) {
+	public RailVector(Object a, Object b) {
 		this.a = a;
 		this.b = b;
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		if (!(other instanceof Pair)) {
+		if (!(other instanceof RailVector)) {
 			return false;
 		}
-		Pair o = (Pair) other;
+		RailVector o = (RailVector) other;
 		return a.equals(o.a) && b.equals(o.b);
 	}
 
@@ -46,7 +47,7 @@ public class RailSearch {
 	private final Block firstBlock;
 	private final Player player;
 	private final Set<String> result = new HashSet<String>();
-	private final Set<Pair> visited = new HashSet<Pair>();
+	private final Set<RailVector> visited = new HashSet<RailVector>();
 	private final Queue<BlockFace> faces = new LinkedList<BlockFace>();
 	private final Plugin plugin;
 
@@ -89,9 +90,9 @@ public class RailSearch {
 				block = block.getRelative(BlockFace.DOWN);
 			}
 
-			final Pair p = new Pair(block, direction);
+			final RailVector p = new RailVector(block, direction);
 			if (visited.contains(p)) { break; }
-			visited.add(new Pair(block, direction));
+			visited.add(new RailVector(block, direction));
 
 			final MaterialData d = block.getState().getData();
 			if (!(d instanceof Rails)) {
@@ -142,10 +143,14 @@ public class RailSearch {
 		// Clear block so that next run will start a new direction
 		block = null;
 
-		reportToPlayer();
+		if (!result.isEmpty()) {
+			reportToPlayer();
+		}
 
 		if (!faces.isEmpty()) {
 			yield();
+		} else {
+			player.sendMessage(ChatColor.GREEN + "Search complete");
 		}
 	}
 
@@ -154,8 +159,8 @@ public class RailSearch {
 
 		builder.append(BlockFaceUtils.toCorrectString(firstDirection) + ": ");
 		for (String s : result) {
-			builder.append(s);
-			builder.append("; ");
+			builder.append(ChatColor.YELLOW + s);
+			builder.append(ChatColor.GRAY + "; ");
 		}
 		player.sendMessage(builder.toString());
 	}
