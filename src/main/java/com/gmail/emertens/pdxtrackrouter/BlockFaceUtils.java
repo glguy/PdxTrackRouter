@@ -95,7 +95,7 @@ public final class BlockFaceUtils {
 		default: return null;
 		}
 	}
-	
+
 	public static BlockFace turnFortyFiveDegreesCW(final BlockFace b) {
 		switch (b) {
 		case NORTH: return BlockFace.NORTH_EAST;
@@ -124,4 +124,51 @@ public final class BlockFaceUtils {
 		}
 	}
 
+	public static String toCorrectString(BlockFace d) {
+		if (d == null) { return "None"; }
+		switch (d) {
+		case DOWN:
+			return "Down";
+		case EAST:
+			return "North";
+		case EAST_NORTH_EAST:
+			break;
+		case EAST_SOUTH_EAST:
+			break;
+		case NORTH:
+			return "West";
+		case NORTH_EAST:
+			break;
+		case NORTH_NORTH_EAST:
+			break;
+		case NORTH_NORTH_WEST:
+			break;
+		case NORTH_WEST:
+			break;
+		case SELF:
+			break;
+		case SOUTH:
+			return "East";
+		case SOUTH_EAST:
+			break;
+		case SOUTH_SOUTH_EAST:
+			break;
+		case SOUTH_SOUTH_WEST:
+			break;
+		case SOUTH_WEST:
+			break;
+		case UP:
+			return "Up";
+		case WEST:
+			return "South";
+		case WEST_NORTH_WEST:
+			break;
+		case WEST_SOUTH_WEST:
+			break;
+		default:
+			break;
+
+		}
+		return "Not-implemented";
+	}
 }

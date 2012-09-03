@@ -26,10 +26,10 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public final class PdxTrackRouter extends JavaPlugin {
 
-	private static final String DEFAULT_DESTINATION = "default";
-	private static final String EMPTY_DESTINATION = "empty";
-	private static final String CHEST_DESTINATION = "chest";
-	private static final String ENGINE_DESTINATION = "engine";
+	public static final String DEFAULT_DESTINATION = "default";
+	public static final String EMPTY_DESTINATION = "empty";
+	public static final String CHEST_DESTINATION = "chest";
+	public static final String ENGINE_DESTINATION = "engine";
 	public static final String DESTINATION_HEADER = "[destination]";
 	public static final String JUNCTION_HEADER = "[junction]";
 
@@ -89,10 +89,20 @@ public final class PdxTrackRouter extends JavaPlugin {
 			} catch (NumberFormatException e) {
 				return false;
 			}
+		} else if (command.getName().equalsIgnoreCase("junctions")) {
+			junctionsCommand(player);
 		} else {
 			return false;
 		}
 		return true;
+	}
+
+	private void junctionsCommand(final Player player) {
+
+		Block block = player.getWorld().getBlockAt(player.getLocation());
+
+		player.sendMessage(ChatColor.GREEN + "Junction search started");
+		RailSearch.findRoute(block, player, this);
 	}
 
 	private static void signChangeCommand(final Player player, final int lineNo, final String line) {
@@ -147,7 +157,7 @@ public final class PdxTrackRouter extends JavaPlugin {
 	 * @param direction
 	 * @return first matching direction or first default direction
 	 */
-	private static BlockFace findDestination(final String destination, final String[] lines, final BlockFace direction) {
+	public static BlockFace findDestination(final String destination, final String[] lines, final BlockFace direction) {
 		final String prefix = normalizeDestination(destination) + ":";
 		final String defaultPrefix = DEFAULT_DESTINATION + ":";
 
@@ -283,7 +293,7 @@ public final class PdxTrackRouter extends JavaPlugin {
 	 * @param input String to be normalized
 	 * @return Normalized version of input
 	 */
-	private static String normalizeDestination(final String input) {
+	public static String normalizeDestination(final String input) {
 		return ChatColor.stripColor(input).replaceAll(" ", "").toLowerCase();
 	}
 

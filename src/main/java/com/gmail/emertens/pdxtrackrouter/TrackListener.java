@@ -56,7 +56,7 @@ public final class TrackListener implements Listener {
 		}
 
 		// Figure out where the minecart is likely to go next
-		final BlockFace nextDirection = computeNextRail(from, to, currentDirection);
+		final BlockFace nextDirection = RailSearch.computeNextRail(from, to, currentDirection);
 		if (nextDirection == null) {
 			return;
 		}
@@ -84,74 +84,7 @@ public final class TrackListener implements Listener {
 	}
 
 
-	private static BlockFace computeNextRail(Block from, Block to, BlockFace traveling) {
 
-		final BlockFace toDir;
-
-		switch (traveling) {
-		case UP:
-			return Junction.railDirection(from);
-		case DOWN:
-			toDir = Junction.railDirection(to);
-			// If we are falling out of the sky guess we will continue to
-			if (toDir == null) {
-				return traveling;
-			}
-			return BlockFaceUtils.opposite(toDir);
-		case NORTH:
-		case SOUTH:
-		case EAST:
-		case WEST:
-			toDir = Junction.railDirection(to);
-
-			// If we are not on a rail guess we will not turn
-			if (toDir == null) {
-				return traveling;
-			}
-
-			return checkTurn(traveling, toDir);
-		default:
-			return null;
-		}
-	}
-
-	/**
-	 * Compute the next block a player is likely to encounter when traveling
-	 * on a flat piece of track.
-	 * @param traveling The direction the player is traveling
-	 * @param track     The direction the track is facing
-	 * @return The direction the player will leave the track block
-	 */
-	private static BlockFace checkTurn(BlockFace traveling, BlockFace track) {
-
-		switch (track) {
-		case NORTH_EAST:
-			switch (traveling) {
-			case NORTH: return BlockFace.WEST;
-			case EAST:  return BlockFace.SOUTH;
-			default:    return traveling;
-			}
-		case NORTH_WEST:
-			switch (traveling) {
-			case NORTH: return BlockFace.EAST;
-			case WEST:  return BlockFace.SOUTH;
-			default:    return traveling;
-			}
-		case SOUTH_EAST:
-			switch (traveling) {
-			case SOUTH: return BlockFace.WEST;
-			case EAST:  return BlockFace.NORTH;
-			default:    return traveling;
-			}
-		case SOUTH_WEST:
-			switch (traveling) {
-			case SOUTH: return BlockFace.EAST;
-			case WEST:  return BlockFace.NORTH;
-			default:    return traveling;
-			}
-		default:        return traveling;
-		}
-	}
 
 	/**
 	 * Reset players' destinations upon departing a mine cart.
