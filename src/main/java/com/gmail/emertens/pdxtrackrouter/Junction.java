@@ -5,6 +5,8 @@
 package com.gmail.emertens.pdxtrackrouter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+
 import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -17,14 +19,9 @@ import org.bukkit.material.Rails;
 
 /**
  *
- * @author emertens
+ * @author Eric Mertens
  */
 public final class Junction {
-	/**
-	 * Direction that junction signs can be stacked
-	 */
-	private static final BlockFace SIGN_STACK_DIRECTION = BlockFace.UP;
-
 	/**
 	 * Locations relative to a junction rail which can contain
 	 * junction signs.
@@ -96,11 +93,17 @@ public final class Junction {
 			} else if (openEnd == null) {
 				openEnd = d;
 				// Give the open-end of a 3-way junction a chance to hold the sign
-				lines = collectJunctionSignLines(neighbor);
+				lines = collectJunctionSignLines(neighbor, true);
 			} else {
 				// Abort as soon as we don't find rails or a sign
 				return null;
 			}
+		}
+
+		// Allow signs underneath to override signs in the open end
+		String[] underLines = collectJunctionSignLines(block.getRelative(BlockFace.DOWN, 2), false);
+		if (underLines.length != 0) {
+			lines = underLines;
 		}
 
 		// Search the corners if this wasn't a 3-way junction with a sign at the
@@ -127,7 +130,7 @@ public final class Junction {
 
 		for (BlockFace d : signLocations) {
 			final Block b = block.getRelative(d);
-			final String[] lines = collectJunctionSignLines(b);
+			final String[] lines = collectJunctionSignLines(b, true);
 
 			if (lines.length != 0) {
 				if (result.length == 0) {
@@ -145,20 +148,33 @@ public final class Junction {
 	 *
 	 * @param block
 	 *            The base of the potential stack of signs
+	 * @param searchDirection When true start the search at the bottom sign, otherwise search down from the top
 	 * @return An array of the lines of the sign stack
 	 */
-	private static String[] collectJunctionSignLines(Block block) {
+	private static String[] collectJunctionSignLines(Block block, boolean searchUp) {
 		final ArrayList<String> stack = new ArrayList<String>();
+
+		final BlockFace searchDirection = searchUp ? BlockFace.UP : BlockFace.DOWN;
+
+		if (block == null) {
+			return new String[] {};
+		}
 
 		// Search upwards collecting all the sign lines
 		BlockState state;
 		while ((state = block.getState()) instanceof Sign) {
 			final Sign sign = (Sign) state;
 			final String[] lines = sign.getLines();
-			for (int i = lines.length - 1; i >= 0; i--) {
-				stack.add(lines[i]);
+
+			if (searchUp) {
+				for (int i = lines.length - 1; i >= 0; i--) {
+					stack.add(lines[i]);
+				}
+			} else {
+				stack.addAll(Arrays.asList(lines));
 			}
-			block = block.getRelative(SIGN_STACK_DIRECTION);
+
+			block = block.getRelative(searchDirection);
 		}
 
 		if (stack.isEmpty()) {
@@ -166,17 +182,25 @@ public final class Junction {
 		}
 
 		// The top line is the last in the list due to searching from the bottom
-		final String topLine = ChatColor.stripColor(stack.get(stack.size()-1));
+		String topLine = searchUp ? stack.get(stack.size()-1) : stack.get(0);
+		topLine = ChatColor.stripColor(topLine);
 
 		if (!PdxTrackRouter.JUNCTION_HEADER.equalsIgnoreCase(topLine)) {
 			return new String[] {};
 		}
 
 		// Removing the header will always leave at least 3 lines
-		stack.remove(stack.size()-1);
+		if (searchUp) {
+			stack.remove(stack.size()-1);
+		} else {
+			stack.remove(0);
+		}
 
 		final String[] result = stack.toArray(new String[stack.size()]);
-		ArrayUtils.reverse(result);
+
+		if (searchUp) {
+			ArrayUtils.reverse(result);
+		}
 
 		return result;
 	}
