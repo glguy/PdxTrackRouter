@@ -1,5 +1,6 @@
 package com.gmail.emertens.pdxtrackrouter;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import org.bukkit.ChatColor;
@@ -159,7 +160,7 @@ public final class PdxTrackRouter extends JavaPlugin {
 	 * @param direction
 	 * @return first matching direction or first default direction
 	 */
-	public static BlockFace findDestination(final String destination, final String[] lines, final BlockFace direction) {
+	public static BlockFace findDestination(final String destination, final Collection<String> lines, final BlockFace direction) {
 		final String prefix = normalizeDestination(destination) + ":";
 		final String defaultPrefix = DEFAULT_DESTINATION + ":";
 

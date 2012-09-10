@@ -5,9 +5,9 @@
 package com.gmail.emertens.pdxtrackrouter;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-
-import org.apache.commons.lang.ArrayUtils;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -22,14 +22,7 @@ import org.bukkit.material.Rails;
  * @author Eric Mertens
  */
 public final class Junction {
-	/**
-	 * Locations relative to a junction rail which can contain
-	 * junction signs.
-	 */
-	private static final BlockFace[] signLocations =
-		(BlockFace[]) ArrayUtils.add(BlockFaceUtils.ORDINAL_DIRECTIONS, BlockFace.UP);
-
-	private final String[] lines;
+	private final Collection<String> lines;
 	private final Block block;
 	private final BlockFace openSide;
 
@@ -40,7 +33,7 @@ public final class Junction {
 	 * @param openSide The face corresponding to the open end of the
 	 *                 junction, if one exists; null otherwise.
 	 */
-	public Junction(Block block, String[] lines, BlockFace openSide) {
+	public Junction(Block block, Collection<String> lines, BlockFace openSide) {
 		this.lines = lines;
 		this.block = block;
 		this.openSide = openSide;
@@ -50,7 +43,7 @@ public final class Junction {
 	 * Returns the lines of the routing signs for this junction.
 	 * @returns the lines of the routing signs for this junction
 	 */
-	public String[] getLines() {
+	public Collection<String> getLines() {
 		return lines;
 	}
 
@@ -78,7 +71,7 @@ public final class Junction {
 		BlockFace openEnd = null;
 
 		// Lines of the routing table
-		String[] lines = new String[] {};
+		Collection<String> lines = null;
 
 		// Verify that this block's neighbors are all rails
 		// or a junction sign stack, but nothing else.
@@ -93,27 +86,35 @@ public final class Junction {
 			} else if (openEnd == null) {
 				openEnd = d;
 				// Give the open-end of a 3-way junction a chance to hold the sign
-				lines = collectJunctionSignLines(neighbor, true);
+				lines = collectJunctionSignLinesUp(neighbor);
 			} else {
 				// Abort as soon as we don't find rails or a sign
 				return null;
 			}
 		}
 
+		// At this point lines might contain the open-end sign
+
 		// Allow signs underneath to override signs in the open end
-		String[] underLines = collectJunctionSignLines(block.getRelative(BlockFace.DOWN, 2), false);
-		if (underLines.length != 0) {
+		final Collection<String> underLines = collectJunctionSignLinesDown(block.getRelative(BlockFace.DOWN, 2));
+		if (underLines != null) {
 			lines = underLines;
+		} else {
+			// Otherwise allow above signs to override
+			final Collection<String> overLines = collectJunctionSignLinesUp(block.getRelative(BlockFace.UP));
+			if (overLines != null) {
+				lines = overLines;
+			}
 		}
 
 		// Search the corners if this wasn't a 3-way junction with a sign at the
 		// open end of the junction.
-		if (lines.length == 0) {
+		if (lines == null) {
 			lines = findCornerSigns(block);
 		}
 
 		// If there are no routing lines to be found, this is not a junction
-		if (lines.length == 0) {
+		if (lines == null) {
 			return null;
 		}
 
@@ -125,18 +126,18 @@ public final class Junction {
 	 * @param block Center block to search from
 	 * @return Unique lines found or an empty array otherwise
 	 */
-	private static String[] findCornerSigns(Block block) {
-		String[] result = new String[] {};
+	private static Collection<String> findCornerSigns(Block block) {
+		Collection<String> result = null;
 
-		for (BlockFace d : signLocations) {
+		for (BlockFace d : BlockFaceUtils.ORDINAL_DIRECTIONS) {
 			final Block b = block.getRelative(d);
-			final String[] lines = collectJunctionSignLines(b, true);
+			final Collection<String> lines = collectJunctionSignLinesUp(b);
 
-			if (lines.length != 0) {
-				if (result.length == 0) {
+			if (lines != null) {
+				if (result == null) {
 					result = lines;
 				} else {
-					return new String[] {};
+					return null;
 				}
 			}
 		}
@@ -151,58 +152,76 @@ public final class Junction {
 	 * @param searchDirection When true start the search at the bottom sign, otherwise search down from the top
 	 * @return An array of the lines of the sign stack
 	 */
-	private static String[] collectJunctionSignLines(Block block, boolean searchUp) {
-		final ArrayList<String> stack = new ArrayList<String>();
+	private static Collection<String> collectJunctionSignLinesUp(Block block) {
+		final List<String> stack = new ArrayList<String>();
 
-		final BlockFace searchDirection = searchUp ? BlockFace.UP : BlockFace.DOWN;
+		// Search upwards collecting all the sign lines,
+		// stop when the junction header is found
+		for (;;) {
+			final BlockState state = block.getState();
+		    if (!(state instanceof Sign)) {
+			return null;
+		    }
 
-		if (block == null) {
-			return new String[] {};
-		}
-
-		// Search upwards collecting all the sign lines
-		BlockState state;
-		while ((state = block.getState()) instanceof Sign) {
 			final Sign sign = (Sign) state;
 			final String[] lines = sign.getLines();
 
-			if (searchUp) {
-				for (int i = lines.length - 1; i >= 0; i--) {
-					stack.add(lines[i]);
-				}
+			stack.add(lines[3]);
+			stack.add(lines[2]);
+			stack.add(lines[1]);
+
+			if (PdxTrackRouter.JUNCTION_HEADER.equalsIgnoreCase(ChatColor.stripColor(lines[0]))) {
+				Collections.reverse(stack);
+				return stack;
 			} else {
-				stack.addAll(Arrays.asList(lines));
+				stack.add(lines[0]);
 			}
 
-			block = block.getRelative(searchDirection);
+			block = block.getRelative(BlockFace.UP);
 		}
+	}
 
-		if (stack.isEmpty()) {
-			return new String[] {};
+	/**
+	 * Collect the concatenated lines from a stack of signs
+	 *
+	 * @param block The topmost of the potential stack of signs
+	 * @param searchDirection When true start the search at the bottom sign, otherwise search down from the top
+	 * @return An array of the lines of the sign stack
+	 */
+	private static Collection<String> collectJunctionSignLinesDown(Block block) {
+		final Collection<String> stack = new ArrayList<String>();
+
+		// Search downward collecting all the sign lines
+		boolean firstSign = true;
+
+		for (;;) {
+			final BlockState state = block.getState();
+
+			// Not a junction sign stack if you find a non-sign before
+			// a junction header
+			if (!(state instanceof Sign)) {
+				return firstSign ? null : stack;
+			}
+
+			final Sign sign = (Sign) state;
+			final String[] lines = sign.getLines();
+
+			if (firstSign) {
+				firstSign = false;
+				final String topLine = ChatColor.stripColor(lines[0]);
+				if (!PdxTrackRouter.JUNCTION_HEADER.equalsIgnoreCase(topLine)) {
+					return null;
+				}
+			} else {
+				stack.add(lines[0]);
+			}
+
+			stack.add(lines[1]);
+			stack.add(lines[2]);
+			stack.add(lines[3]);
+
+			block = block.getRelative(BlockFace.DOWN);
 		}
-
-		// The top line is the last in the list due to searching from the bottom
-		String topLine = searchUp ? stack.get(stack.size()-1) : stack.get(0);
-		topLine = ChatColor.stripColor(topLine);
-
-		if (!PdxTrackRouter.JUNCTION_HEADER.equalsIgnoreCase(topLine)) {
-			return new String[] {};
-		}
-
-		// Removing the header will always leave at least 3 lines
-		if (searchUp) {
-			stack.remove(stack.size()-1);
-		} else {
-			stack.remove(0);
-		}
-
-		final String[] result = stack.toArray(new String[stack.size()]);
-
-		if (searchUp) {
-			ArrayUtils.reverse(result);
-		}
-
-		return result;
 	}
 
 	/**

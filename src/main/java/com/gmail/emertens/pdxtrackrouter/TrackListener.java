@@ -32,8 +32,7 @@ public final class TrackListener implements Listener {
 	/**
 	 * Construct a new TrackListener
 	 *
-	 * @param p
-	 *            The plug-in to notify when a junction is approached
+	 * @param p The plug-in to notify when a junction is approached
 	 * @param header
 	 */
 	public TrackListener(PdxTrackRouter p) {
@@ -110,11 +109,11 @@ public final class TrackListener implements Listener {
 
 	/**
 	 * When a minecart is destroyed we clean its preference from the system
-	 * @param e
+	 * @param event
 	 */
 	@EventHandler(ignoreCancelled = true)
-	public void onMinecartDestroyed(VehicleDestroyEvent e) {
-		Entity entity = e.getVehicle();
+	public void onMinecartDestroyed(VehicleDestroyEvent event) {
+		Entity entity = event.getVehicle();
 		if (entity instanceof Minecart) {
 			plugin.clearEntityDestination(entity.getEntityId());
 		}
@@ -123,11 +122,11 @@ public final class TrackListener implements Listener {
 	/**
 	 * Ensure that a minecart starts with a fresh preference in case entity ids
 	 * get reused
-	 * @param e
+	 * @param event
 	 */
 	@EventHandler(ignoreCancelled = true)
-	public void onMinecartCreated(VehicleCreateEvent e) {
-		Entity entity = e.getVehicle();
+	public void onMinecartCreated(VehicleCreateEvent event) {
+		Entity entity = event.getVehicle();
 		if (entity instanceof Minecart) {
 			plugin.clearEntityDestination(entity.getEntityId());
 		}
