@@ -1,14 +1,18 @@
 package com.gmail.emertens.pdxtrackrouter;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Minecart;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 /**
@@ -20,6 +24,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 public final class PlayerListener implements Listener {
 
 	private final PdxTrackRouter plugin;
+	private static final Material TRANSFER_TOOL = Material.SIGN;
 
 	public PlayerListener(final PdxTrackRouter p) {
 		plugin = p;
@@ -62,6 +67,24 @@ public final class PlayerListener implements Listener {
 				plugin.setPlayerDestination(event.getPlayer(), sign.getLine(1));
 			}
 		}
+	}
+
+	@EventHandler(ignoreCancelled = true)
+	public void onEntityInteract(PlayerInteractEntityEvent e) {
+
+		if (e.getPlayer().getItemInHand().getType() != TRANSFER_TOOL) {
+			return;
+		}
+
+		Entity entity = e.getRightClicked();
+		if (!(entity instanceof Minecart)) {
+			return;
+		}
+
+		plugin.transferDestination(e.getPlayer(), entity.getEntityId());
+
+		// Cancel event to stop chest from opening or player from boarding
+		e.setCancelled(true);
 	}
 
 	/**

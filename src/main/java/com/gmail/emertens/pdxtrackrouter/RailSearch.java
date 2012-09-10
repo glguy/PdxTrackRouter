@@ -51,7 +51,7 @@ final class RailVector {
 	public int hashCode() {
 		return block.hashCode() + travelDirection.hashCode() * 13;
 	}
-	
+
 	/**
 	 * Attempt to construct a RailVector for the given Block. Return null if the
 	 * given block is not a rail, powered rail, or detector rail. This
@@ -63,12 +63,12 @@ final class RailVector {
 	public static RailVector makeRailVector(
 			Block block,
 			final BlockFace travelDirection) {
-		
+
 		// Search downward to find the nearest block
 		while (block.getType() == Material.AIR) {
 			block = block.getRelative(BlockFace.DOWN);
 		}
-		
+
 		final MaterialData d = block.getState().getData();
 		if (d instanceof Rails) {
 			return new RailVector(block, (Rails) d, travelDirection);
@@ -76,19 +76,19 @@ final class RailVector {
 			return null;
 		}
 	}
-	
+
 	public Block getBlock() {
 		return block;
 	}
-	
+
 	public BlockFace getTravelDirection() {
 		return travelDirection;
 	}
-	
+
 	public BlockFace getRailDirection() {
 		return rails.getDirection();
 	}
-	
+
 	public boolean isOnSlope() {
 		return rails.isOnSlope();
 	}
@@ -102,10 +102,10 @@ final class RailVector {
  * This class encapsulates a rail network traversal collecting the
  * destination which would have an effect on a player if he were
  * to depart a given block in any of 4 cardinal directions.
- * 
+ *
  * This class is designed to break the search up into several runs
  * to compensate for the non-thread-safe nature of Minecraft/Bukkit.
- * 
+ *
  * @author Eric Mertens
  *
  */
@@ -118,7 +118,7 @@ public final class RailSearch {
 	 * Block in which the search started
 	 */
 	private final Block firstBlock;
-	
+
 	private final Player player;
 	private final Set<String> result = new HashSet<String>();
 	private final Set<RailVector> visited = new HashSet<RailVector>();
@@ -129,7 +129,7 @@ public final class RailSearch {
 	 * Direction that the current search left the firstBlock in
 	 */
 	private BlockFace firstDirection;
-	
+
 	/**
 	 * Current position and traveling direction of the search
 	 */
@@ -150,7 +150,7 @@ public final class RailSearch {
 
 	/**
 	 * Advance the search.
-	 * 
+	 *
 	 * This method will perform a chunk of the rail network traversal
 	 * and schedule subsequent searches and notify the player when
 	 * appropriate. This method will perform one search for every
@@ -173,14 +173,14 @@ public final class RailSearch {
 				cursor = null;
 				break;
 			}
-			 
+
 			visited.add(cursor);
 
 			//Compute the direction that we will depart from this block
-			
+
 			final Junction junction = Junction.makeJunction(cursor.getBlock());
 			final BlockFace newDirection;
-			
+
 			if (junction == null) {
 				newDirection = cursor.getExitDirection();
 			} else {
@@ -199,7 +199,7 @@ public final class RailSearch {
 					nextBlock = nextBlock.getRelative(BlockFace.UP);
 				}
 			}
-			
+
 			cursor = RailVector.makeRailVector(nextBlock, newDirection);
 
 			// Ensure we don't hold the main thread for too long
@@ -270,7 +270,7 @@ public final class RailSearch {
 	 * the starting block. The search will report all destinations which a
 	 * player could specify which would have a routing effect. The report will
 	 * be sent to the given player.
-	 * 
+	 *
 	 * @param block Staring block
 	 * @param player Player to report to
 	 * @param plugin Plugin to schedule delayed computation with

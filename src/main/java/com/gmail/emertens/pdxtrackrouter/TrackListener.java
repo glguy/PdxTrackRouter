@@ -5,10 +5,13 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Minecart;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Vehicle;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.vehicle.VehicleCreateEvent;
+import org.bukkit.event.vehicle.VehicleDestroyEvent;
 import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.bukkit.event.vehicle.VehicleMoveEvent;
 
@@ -102,6 +105,31 @@ public final class TrackListener implements Listener {
 		LivingEntity entity = event.getExited();
 		if (entity instanceof Player) {
 			plugin.clearPlayerDestination((Player) entity, false);
+		}
+	}
+
+	/**
+	 * When a minecart is destroyed we clean its preference from the system
+	 * @param e
+	 */
+	@EventHandler(ignoreCancelled = true)
+	public void onMinecartDestroyed(VehicleDestroyEvent e) {
+		Entity entity = e.getVehicle();
+		if (entity instanceof Minecart) {
+			plugin.clearEntityDestination(entity.getEntityId());
+		}
+	}
+
+	/**
+	 * Ensure that a minecart starts with a fresh preference in case entity ids
+	 * get reused
+	 * @param e
+	 */
+	@EventHandler(ignoreCancelled = true)
+	public void onMinecartCreated(VehicleCreateEvent e) {
+		Entity entity = e.getVehicle();
+		if (entity instanceof Minecart) {
+			plugin.clearEntityDestination(entity.getEntityId());
 		}
 	}
 }

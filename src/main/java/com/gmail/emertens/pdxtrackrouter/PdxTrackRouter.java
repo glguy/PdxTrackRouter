@@ -138,6 +138,8 @@ public final class PdxTrackRouter extends JavaPlugin {
 		if (entity instanceof Player) {
 			final Player player = (Player)entity;
 			return playerToDestination(player);
+		} else if (playerTargets.containsKey(Integer.toString(entity.getEntityId()))) {
+			return playerTargets.get(Integer.toString(entity.getEntityId()));
 		} else if (entity instanceof StorageMinecart) {
 			return CHEST_DESTINATION;
 		} else if (entity instanceof PoweredMinecart) {
@@ -319,5 +321,27 @@ public final class PdxTrackRouter extends JavaPlugin {
 		if (newDirection != null) {
 			junction.setRailDirection(newDirection);
 		}
+	}
+
+	/**
+	 * Copy a player's destination preference over to a minecart and
+	 * report the effect to the player.
+	 * @param player Player whose preference should be used
+	 * @param entityId Entity to copy the preference to
+	 */
+	public void transferDestination(final Player player, final int entityId) {
+		String destination = playerToDestination(player);
+		player.sendMessage(ChatColor.GREEN
+				+ "Transfering destination preference " + ChatColor.YELLOW
+				+ destination + ChatColor.GREEN + " to minecart");
+		setEntityDestination(entityId, destination);
+	}
+
+	private void setEntityDestination(final int entityId, final String destination) {
+		playerTargets.put(Integer.toString(entityId), destination);
+	}
+
+	public void clearEntityDestination(int entityId) {
+		playerTargets.remove(Integer.toString(entityId));
 	}
 }
