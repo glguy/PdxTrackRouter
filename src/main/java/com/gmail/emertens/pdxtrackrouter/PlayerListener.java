@@ -41,7 +41,7 @@ public final class PlayerListener implements Listener {
 		if (state instanceof Sign) {
 			final Sign sign = (Sign)state;
 
-			if (PdxTrackRouter.DESTINATION_HEADER.equalsIgnoreCase(ChatColor.stripColor(sign.getLine(0)))) {
+			if (PdxTrackRouter.isDestinationHeader(sign.getLine(0))) {
 				event.setCancelled(true);
 			}
 		}
@@ -58,19 +58,18 @@ public final class PlayerListener implements Listener {
 			return;
 		}
 
-		final Block block = event.getClickedBlock();
-		final BlockState state = block.getState();
+		final BlockState state = event.getClickedBlock().getState();
 		if (state instanceof Sign) {
 			final Sign sign = (Sign)state;
 
-			if (PdxTrackRouter.DESTINATION_HEADER.equalsIgnoreCase(ChatColor.stripColor(sign.getLine(0)))) {
+			if (PdxTrackRouter.isDestinationHeader(sign.getLine(0))) {
 				plugin.setPlayerDestination(event.getPlayer(), sign.getLine(1));
 			}
 		}
 	}
 
 	@EventHandler(ignoreCancelled = true)
-	public void onEntityInteract(PlayerInteractEntityEvent e) {
+	public void onEntityInteract(final PlayerInteractEntityEvent e) {
 
 		if (e.getPlayer().getItemInHand().getType() != TRANSFER_TOOL) {
 			return;
@@ -93,9 +92,9 @@ public final class PlayerListener implements Listener {
 	@EventHandler(ignoreCancelled = true)
 	public void onSignChange(final SignChangeEvent event) {
 		final String header = event.getLine(0);
-		if (PdxTrackRouter.JUNCTION_HEADER.equalsIgnoreCase(header)
-				|| PdxTrackRouter.DESTINATION_HEADER.equalsIgnoreCase(header)) {
-			event.setLine(0, ChatColor.DARK_BLUE + header);
+		if (PdxTrackRouter.isDestinationHeader(header)
+				|| PdxTrackRouter.isJunctionHeader(header)) {
+			event.setLine(0, ChatColor.DARK_BLUE + ChatColor.stripColor(header));
 		}
 	}
 }

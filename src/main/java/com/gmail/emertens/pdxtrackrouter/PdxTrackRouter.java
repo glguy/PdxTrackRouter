@@ -15,6 +15,7 @@ import org.bukkit.entity.Minecart;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.PoweredMinecart;
 import org.bukkit.entity.StorageMinecart;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -31,24 +32,28 @@ public final class PdxTrackRouter extends JavaPlugin {
 	public static final String EMPTY_DESTINATION = "empty";
 	public static final String CHEST_DESTINATION = "chest";
 	public static final String ENGINE_DESTINATION = "engine";
-	public static final String DESTINATION_HEADER = "[destination]";
-	public static final String JUNCTION_HEADER = "[junction]";
+	private static final String DESTINATION_HEADER = "[destination]";
+	private static final String JUNCTION_HEADER = "[junction]";
 
 	/**
 	 * Mapping from player names to destination preference.
 	 */
 	private Map<String,String> playerTargets = new HashMap<String, String>();
 
+	/**
+	 * This method is called when the plug-in is enabled. It registers
+	 * event listeners for the plug-in.
+	 */
 	@Override
 	public void onEnable() {
 		final PluginManager pm = getServer().getPluginManager();
 
 		// Listen for mine cart events
-		TrackListener trackListener = new TrackListener(this);
+		Listener trackListener = new TrackListener(this);
 		pm.registerEvents(trackListener, this);
 
 		// Listen for player events
-		PlayerListener playerListener = new PlayerListener(this);
+		Listener playerListener = new PlayerListener(this);
 		pm.registerEvents(playerListener, this);
 	}
 
@@ -198,7 +203,7 @@ public final class PdxTrackRouter extends JavaPlugin {
 	 * @param target The direction the player wants to go
 	 * @return The direction the track should be changed to
 	 */
-	private static BlockFace computeJunction(final BlockFace traveling, final BlockFace open, final BlockFace target) {
+	private static BlockFace computeThreeWayJunction(final BlockFace traveling, final BlockFace open, final BlockFace target) {
 
 		// You can't turn around
 		if (traveling == BlockFaceUtils.opposite(target)) {
@@ -231,7 +236,7 @@ public final class PdxTrackRouter extends JavaPlugin {
 	 * @param target Direction player wants to be moving
 	 * @return Direction the junction track should be positioned in.
 	 */
-	private BlockFace computeFourWayJunction(final BlockFace direction, final BlockFace target) {
+	private static BlockFace computeFourWayJunction(final BlockFace direction, final BlockFace target) {
 
 		// Continuing straight through
 		if (direction == target) {
@@ -316,7 +321,7 @@ public final class PdxTrackRouter extends JavaPlugin {
 		if (open == null) {
 			newDirection = computeFourWayJunction(traveling, target);
 		} else {
-			newDirection = computeJunction(traveling, open, target);
+			newDirection = computeThreeWayJunction(traveling, open, target);
 		}
 
 		if (newDirection != null) {
@@ -331,18 +336,35 @@ public final class PdxTrackRouter extends JavaPlugin {
 	 * @param entityId Entity to copy the preference to
 	 */
 	public void transferDestination(final Player player, final int entityId) {
-		String destination = playerToDestination(player);
+		final String destination = playerToDestination(player);
 		player.sendMessage(ChatColor.GREEN
 				+ "Transfering destination preference " + ChatColor.YELLOW
 				+ destination + ChatColor.GREEN + " to minecart");
 		setEntityDestination(entityId, destination);
 	}
 
+	/**
+	 * Set the destination preference for an cart without a player
+	 * @param entityId Identity of the cart
+	 * @param destination Destination preference
+	 */
 	private void setEntityDestination(final int entityId, final String destination) {
 		playerTargets.put(Integer.toString(entityId), destination);
 	}
 
+	/**
+	 * Clear the destination preference for a cart without a player
+	 * @param entityId Tdentity of the cart
+	 */
 	public void clearEntityDestination(int entityId) {
 		playerTargets.remove(Integer.toString(entityId));
+	}
+
+	public static boolean isJunctionHeader(final String line) {
+		return JUNCTION_HEADER.equalsIgnoreCase(ChatColor.stripColor(line));
+	}
+
+	public static boolean isDestinationHeader(final String line) {
+		return DESTINATION_HEADER.equalsIgnoreCase(ChatColor.stripColor(line));
 	}
 }

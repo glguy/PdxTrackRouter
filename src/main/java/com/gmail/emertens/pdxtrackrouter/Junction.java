@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -167,7 +166,7 @@ public final class Junction {
 			stack.add(lines[2]);
 			stack.add(lines[1]);
 
-			if (PdxTrackRouter.JUNCTION_HEADER.equalsIgnoreCase(ChatColor.stripColor(lines[0]))) {
+			if (PdxTrackRouter.isJunctionHeader(lines[0])) {
 				Collections.reverse(stack);
 				return stack;
 			} else {
@@ -205,8 +204,7 @@ public final class Junction {
 
 			if (firstSign) {
 				firstSign = false;
-				final String topLine = ChatColor.stripColor(lines[0]);
-				if (!PdxTrackRouter.JUNCTION_HEADER.equalsIgnoreCase(topLine)) {
+				if (!PdxTrackRouter.isJunctionHeader(lines[0])) {
 					return null;
 				}
 			} else {
