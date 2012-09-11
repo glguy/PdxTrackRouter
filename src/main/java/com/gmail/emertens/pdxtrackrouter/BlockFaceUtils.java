@@ -31,10 +31,14 @@ public final class BlockFaceUtils {
 			return null;
 		}
 		switch (Character.toUpperCase(c.charAt(0))) {
-		case 'N': return BlockFace.EAST;
-		case 'E': return BlockFace.SOUTH;
-		case 'S': return BlockFace.WEST;
-		case 'W': return BlockFace.NORTH;
+		case 'S':
+		case '0': return BlockFace.WEST;
+		case 'W':
+		case '1': return BlockFace.NORTH;
+		case 'N':
+		case '2': return BlockFace.EAST;
+		case 'E':
+		case '3': return BlockFace.SOUTH;
 		default: return null;
 		}
 	}
