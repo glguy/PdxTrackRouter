@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.gmail.emertens.pdxtrackrouter;
 
 import java.util.ArrayList;
@@ -18,7 +14,8 @@ import org.bukkit.material.MaterialData;
 import org.bukkit.material.Rails;
 
 /**
- *
+ * This class contains all the information to make decisions
+ * at a plug-in controlled junction and to update the junction.
  * @author Eric Mertens
  */
 public final class Junction {
@@ -69,56 +66,56 @@ public final class Junction {
 
 		// Check that this is a 3-way intersection with a junction sign
 		BlockFace openEnd = null;
-
-		// Lines of the routing table
-		Collection<String> lines = null;
+		Block openBlock = null;
 
 		// Verify that this block's neighbors are all rails
 		// or a junction sign stack, but nothing else.
 		for (BlockFace d : BlockFaceUtils.CARDINAL_DIRECTIONS) {
 			Block neighbor = block.getRelative(d);
-			if (isConnectedRail(neighbor,d)) {
-				continue;
-			} else if (neighbor.getType() == Material.AIR
-					&& isConnectedSlopeRail(neighbor.getRelative(BlockFace.DOWN), d)) {
-				// Look down hills
-				continue;
+			if (isConnectedRail(neighbor,d)
+			 || neighbor.getType() == Material.AIR
+			    && isConnectedSlopeRail(neighbor.getRelative(BlockFace.DOWN), d)) {
+				// Do nothing
 			} else if (openEnd == null) {
 				openEnd = d;
-				// Give the open-end of a 3-way junction a chance to hold the sign
-				lines = collectJunctionSignLinesUp(neighbor);
+				openBlock = neighbor;
 			} else {
-				// Abort as soon as we don't find rails or a sign
+				// Abort after two non-rails
 				return null;
 			}
 		}
 
-		// At this point lines might contain the open-end sign
-
-		// Allow signs underneath to override signs in the open end
-		final Collection<String> underLines = collectJunctionSignLinesDown(block.getRelative(BlockFace.DOWN, 2));
-		if (underLines != null) {
-			lines = underLines;
-		} else {
-			// Otherwise allow above signs to override
-			final Collection<String> overLines = collectJunctionSignLinesUp(block.getRelative(BlockFace.UP));
-			if (overLines != null) {
-				lines = overLines;
-			}
-		}
-
-		// Search the corners if this wasn't a 3-way junction with a sign at the
-		// open end of the junction.
-		if (lines == null) {
-			lines = findCornerSigns(block);
-		}
-
-		// If there are no routing lines to be found, this is not a junction
-		if (lines == null) {
+		Collection<String> routingLines = findJunctionSigns(block, openBlock);
+		if (routingLines == null) {
 			return null;
 		}
 
-		return new Junction(block, lines, openEnd);
+		return new Junction(block, routingLines, openEnd);
+	}
+
+	private static Collection<String> findJunctionSigns(Block block,
+			Block openBlock) {
+		Collection<String> routingLines = null;
+
+		if (routingLines == null) {
+			final Block under = block.getRelative(BlockFace.DOWN, 2);
+			routingLines = collectJunctionSignLinesDown(under);
+		}
+
+		if (routingLines == null) {
+			final Block above = block.getRelative(BlockFace.UP);
+			routingLines = collectJunctionSignLinesUp(above);
+		}
+
+		if (routingLines == null && openBlock != null) {
+			routingLines = collectJunctionSignLinesUp(openBlock);
+		}
+
+		if (routingLines == null) {
+			routingLines = findCornerSigns(block);
+		}
+
+		return routingLines;
 	}
 
 	/**
@@ -233,7 +230,6 @@ public final class Junction {
 		final BlockState state = block.getState();
 		final Rails rails = (Rails) state.getData();
 		rails.setDirection(newDirection, false);
-		state.setData(rails);
 		state.update();
 	}
 
