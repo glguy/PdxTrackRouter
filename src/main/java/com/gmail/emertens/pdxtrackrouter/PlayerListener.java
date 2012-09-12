@@ -7,6 +7,7 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Minecart;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -63,7 +64,12 @@ public final class PlayerListener implements Listener {
 			final Sign sign = (Sign)state;
 
 			if (PdxTrackRouter.isDestinationHeader(sign.getLine(0))) {
-				plugin.setPlayerDestination(event.getPlayer(), sign.getLine(1));
+				final Player player = event.getPlayer();
+				if (PdxTrackRouter.playerCanUseDestinations(player)) {
+					plugin.setPlayerDestination(event.getPlayer(), sign.getLine(1));
+				} else {
+					player.sendMessage(ChatColor.RED + "Permission denied");
+				}
 			}
 		}
 	}
@@ -80,10 +86,11 @@ public final class PlayerListener implements Listener {
 			return;
 		}
 
-		plugin.transferDestination(e.getPlayer(), entity.getEntityId());
-
-		// Cancel event to stop chest from opening or player from boarding
-		e.setCancelled(true);
+		final Player player = e.getPlayer();
+		if (PdxTrackRouter.playerCanUseTransferTool(player)) {
+			plugin.transferDestination(player, entity.getEntityId());
+			e.setCancelled(true);
+		}
 	}
 
 	/**
@@ -92,9 +99,28 @@ public final class PlayerListener implements Listener {
 	@EventHandler(ignoreCancelled = true)
 	public void onSignChange(final SignChangeEvent event) {
 		final String header = event.getLine(0);
-		if (PdxTrackRouter.isDestinationHeader(header)
-				|| PdxTrackRouter.isJunctionHeader(header)) {
+		final Player player = event.getPlayer();
+		boolean eraseHeader = false;
+		boolean colorHeader = false;
+
+		if (PdxTrackRouter.isDestinationHeader(header)) {
+			if (PdxTrackRouter.playerCanCreateDestinations(player)) {
+				colorHeader = true;
+			} else {
+				eraseHeader = true;
+			}
+		} else if (PdxTrackRouter.isJunctionHeader(header)) {
+			if (PdxTrackRouter.playerCanCreateJunctions(player)) {
+				colorHeader = true;
+			} else {
+				eraseHeader = true;
+			}
+		}
+
+		if (colorHeader) {
 			event.setLine(0, ChatColor.DARK_BLUE + ChatColor.stripColor(header));
+		} else if (eraseHeader) {
+			event.setLine(0, "");
 		}
 	}
 }

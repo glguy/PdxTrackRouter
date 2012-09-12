@@ -354,7 +354,7 @@ public final class PdxTrackRouter extends JavaPlugin {
 
 	/**
 	 * Clear the destination preference for a cart without a player
-	 * @param entityId Tdentity of the cart
+	 * @param entityId Identity of the cart
 	 */
 	public void clearEntityDestination(int entityId) {
 		playerTargets.remove(Integer.toString(entityId));
@@ -366,5 +366,21 @@ public final class PdxTrackRouter extends JavaPlugin {
 
 	public static boolean isDestinationHeader(final String line) {
 		return DESTINATION_HEADER.equalsIgnoreCase(ChatColor.stripColor(line));
+	}
+
+	public static boolean playerCanCreateDestinations(Player player) {
+		return player.hasPermission("trackrouter.sign.destination.create");
+	}
+
+	public static boolean playerCanCreateJunctions(Player player) {
+		return player.hasPermission("trackrouter.sign.junction.create");
+	}
+
+	public static boolean playerCanUseDestinations(Player player) {
+		return player.hasPermission("trackrouter.sign.destination.use");
+	}
+
+	public static boolean playerCanUseTransferTool(Player player) {
+		return player.hasPermission("trackrouter.transfertool");
 	}
 }

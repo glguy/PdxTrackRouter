@@ -10,6 +10,7 @@ commands:
   destination:
     description: Set destination to take at junctions
     usage: /<command> [DIRECTION]
+    permission: trackrouter.destination
   changesign:
     description: Set a line on a sign
     usage: /<command> [1-4] TEXT
@@ -23,6 +24,21 @@ permissions:
   trackrouter.changesign:
     description: Change lines on signs in-place
     default: op
+  trackrouter.destination:
+    description: Use the /destination command
+    default: true
   trackrouter.junctions:
-    description: Execute the junctions command
+    description: Use the /junctions command
     default: op
+  trackrouter.sign.junction.create:
+    description: Create new junction signs
+    default: true
+  trackrouter.sign.destination.create:
+    description: Create new destination signs
+    default: true
+  trackrouter.sign.destination.use:
+    description: Use destination signs
+    default: true
+  trackrouter.transfertool:
+    description: Transfer your destination preference to a cart
+    default: true
