@@ -74,22 +74,30 @@ public final class PlayerListener implements Listener {
 		}
 	}
 
+	/**
+	 * Handle the event when a player right clicks on a minecart with the
+	 * transfer tool. Transfer the player's destination preference to the
+	 * minecart.
+	 * @param event
+	 */
 	@EventHandler(ignoreCancelled = true)
-	public void onEntityInteract(final PlayerInteractEntityEvent e) {
+	public void onEntityInteract(final PlayerInteractEntityEvent event) {
 
-		if (e.getPlayer().getItemInHand().getType() != TRANSFER_TOOL) {
+		if (event.getPlayer().getItemInHand().getType() != TRANSFER_TOOL) {
 			return;
 		}
 
-		Entity entity = e.getRightClicked();
+		final Entity entity = event.getRightClicked();
 		if (!(entity instanceof Minecart)) {
 			return;
 		}
 
-		final Player player = e.getPlayer();
+		final Player player = event.getPlayer();
 		if (PdxTrackRouter.playerCanUseTransferTool(player)) {
+			final Minecart minecart = (Minecart) entity;
+			minecart.setSlowWhenEmpty(false);
 			plugin.transferDestination(player, entity.getEntityId());
-			e.setCancelled(true);
+			event.setCancelled(true);
 		}
 	}
 
