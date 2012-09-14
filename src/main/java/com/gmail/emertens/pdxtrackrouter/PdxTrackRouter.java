@@ -101,26 +101,26 @@ public final class PdxTrackRouter extends JavaPlugin {
 
 	private void junctionsCommand(final Player player) {
 
-		Block block = player.getWorld().getBlockAt(player.getLocation());
-
 		player.sendMessage(ChatColor.GREEN + "Junction search started");
+
+		final Block block = player.getWorld().getBlockAt(player.getLocation());
 		RailSearch.findRoute(block, player, this);
 	}
 
 	private static void signChangeCommand(final Player player, final int lineNo, final String line) {
-		Block block = player.getTargetBlock(null, 10);
 
 		if (lineNo < 1 || lineNo > 4) {
 			player.sendMessage(ChatColor.RED + "Line number out of range");
 			return;
 		}
 
+		final Block block = player.getTargetBlock(null, 10);
 		if (block == null) {
 			player.sendMessage(ChatColor.RED + "No sign in range");
 			return;
 		}
 
-		BlockState state = block.getState();
+		final BlockState state = block.getState();
 		if (!(state instanceof Sign)) {
 			player.sendMessage(ChatColor.RED + "Selected block not a sign");
 			return;
@@ -139,8 +139,12 @@ public final class PdxTrackRouter extends JavaPlugin {
 	private String minecartToPreference(final Minecart minecart) {
 		final Entity passenger = minecart.getPassenger();
 
-		if (passenger != null && entityHasDestination(passenger)) {
-			return entityToDestination(passenger);
+		if (passenger != null) {
+			if (entityHasDestination(passenger)) {
+				return entityToDestination(passenger);
+			} else {
+				return DEFAULT_DESTINATION;
+			}
 		} else if (entityHasDestination(minecart)) {
 			return entityToDestination(minecart);
 		} else if (minecart instanceof StorageMinecart) {
