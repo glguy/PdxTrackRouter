@@ -205,28 +205,12 @@ public final class PdxTrackRouter extends JavaPlugin {
 	 */
 	private static BlockFace computeThreeWayJunction(final BlockFace traveling, final BlockFace open, final BlockFace target) {
 
-		// You can't turn around
-		if (traveling == BlockFaceUtils.opposite(target)) {
-			return null;
-		}
-
 		// You can't go off the tracks
 		if (target == open) {
 			return null;
 		}
 
-		// Heading into a T junction
-		if (traveling == open) {
-			return BlockFaceUtils.addFaces(BlockFaceUtils.opposite(target), open);
-		}
-
-		// Continuing straight through a junction
-		if (traveling == target) {
-			return BlockFaceUtils.addFaces(BlockFaceUtils.opposite(target), open);
-		}
-
-		// Turning into a junction
-		return BlockFaceUtils.addFaces(traveling, open);
+		return computeFourWayJunction(traveling, target);
 	}
 
 	/**
