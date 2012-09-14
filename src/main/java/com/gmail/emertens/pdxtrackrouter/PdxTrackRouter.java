@@ -3,6 +3,7 @@ package com.gmail.emertens.pdxtrackrouter;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -38,7 +39,7 @@ public final class PdxTrackRouter extends JavaPlugin {
 	/**
 	 * Mapping from player names to destination preference.
 	 */
-	private Map<String,String> playerTargets = new HashMap<String, String>();
+	private final Map<String,String> playerTargets = new HashMap<String, String>();
 
 	/**
 	 * This method is called when the plug-in is enabled. It registers
@@ -140,17 +141,19 @@ public final class PdxTrackRouter extends JavaPlugin {
 	 * @param entity Entity to find the destination for
 	 * @return A normalized destination for that entity
 	 */
-	private String entityToPreference(final Entity entity) {
-		if (entity instanceof Player) {
-			final Player player = (Player)entity;
+	private String minecartToPreference(final Minecart minecart) {
+		final Entity passenger = minecart.getPassenger();
+
+		if (passenger instanceof Player) {
+			final Player player = (Player) passenger;
 			return playerToDestination(player);
-		} else if (playerTargets.containsKey(Integer.toString(entity.getEntityId()))) {
-			return playerTargets.get(Integer.toString(entity.getEntityId()));
-		} else if (entity instanceof StorageMinecart) {
+		} else if (playerTargets.containsKey(Integer.toString(minecart.getEntityId()))) {
+			return playerTargets.get(Integer.toString(minecart.getEntityId()));
+		} else if (minecart instanceof StorageMinecart) {
 			return CHEST_DESTINATION;
-		} else if (entity instanceof PoweredMinecart) {
+		} else if (minecart instanceof PoweredMinecart) {
 			return ENGINE_DESTINATION;
-		} else if (entity instanceof Minecart) {
+		} else if (minecart instanceof Minecart) {
 			return EMPTY_DESTINATION;
 		} else {
 			return DEFAULT_DESTINATION;
@@ -296,8 +299,8 @@ public final class PdxTrackRouter extends JavaPlugin {
 	 * @param junction Junction to be updated
 	 * @param traveling Direction the entity will travel into the junction
 	 */
-	public void updateJunction(final Entity preferenceEntity, final Junction junction, final BlockFace traveling) {
-		final String destination = entityToPreference(preferenceEntity);
+	public void updateJunction(final Minecart minecart, final Junction junction, final BlockFace traveling) {
+		final String destination = minecartToPreference(minecart);
 		final BlockFace target = findDestination(destination, junction.getLines(), traveling);
 		final BlockFace open = junction.getOpenSide();
 

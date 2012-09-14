@@ -57,6 +57,11 @@ public final class TrackListener implements Listener {
 			return;
 		}
 
+		final Vehicle vehicle = event.getVehicle();
+		if (!(vehicle instanceof Minecart)) {
+			return;
+		}
+
 		// Figure out where the minecart is likely to go next
 		final BlockFace nextDirection = RailSearch.computeNextRail(from, to, currentDirection);
 		if (nextDirection == null) {
@@ -73,20 +78,10 @@ public final class TrackListener implements Listener {
 			return;
 		}
 
-		final Vehicle vehicle = event.getVehicle();
-		final Entity passenger = vehicle.getPassenger();
-
-		// Base routing decisions on the identity of this entity
-		final Entity preferenceEntity = passenger == null ? vehicle : passenger;
-
 		// If a junction sign has been found, treat this as a plug-in controlled
 		// junction and report to the plug-in
-
-		plugin.updateJunction(preferenceEntity, junction, nextDirection);
+		plugin.updateJunction((Minecart) vehicle, junction, nextDirection);
 	}
-
-
-
 
 	/**
 	 * Reset players' destinations upon departing a mine cart.
