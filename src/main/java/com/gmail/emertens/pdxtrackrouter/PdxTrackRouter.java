@@ -1,8 +1,6 @@
 package com.gmail.emertens.pdxtrackrouter;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
@@ -17,6 +15,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.PoweredMinecart;
 import org.bukkit.entity.StorageMinecart;
 import org.bukkit.event.Listener;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -29,17 +28,13 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public final class PdxTrackRouter extends JavaPlugin {
 
+	private static final String TRACKROUTER_DESTINATION = "trackrouter.destination";
 	public static final String DEFAULT_DESTINATION = "default";
 	public static final String EMPTY_DESTINATION = "empty";
 	public static final String CHEST_DESTINATION = "chest";
 	public static final String ENGINE_DESTINATION = "engine";
 	private static final String DESTINATION_HEADER = "[destination]";
 	private static final String JUNCTION_HEADER = "[junction]";
-
-	/**
-	 * Mapping from player names to destination preference.
-	 */
-	private final Map<String,String> playerTargets = new HashMap<String, String>();
 
 	/**
 	 * This method is called when the plug-in is enabled. It registers
@@ -144,11 +139,10 @@ public final class PdxTrackRouter extends JavaPlugin {
 	private String minecartToPreference(final Minecart minecart) {
 		final Entity passenger = minecart.getPassenger();
 
-		if (passenger instanceof Player) {
-			final Player player = (Player) passenger;
-			return playerToDestination(player);
-		} else if (playerTargets.containsKey(Integer.toString(minecart.getEntityId()))) {
-			return playerTargets.get(Integer.toString(minecart.getEntityId()));
+		if (passenger != null && entityHasDestination(passenger)) {
+			return entityToDestination(passenger);
+		} else if (entityHasDestination(minecart)) {
+			return entityToDestination(minecart);
 		} else if (minecart instanceof StorageMinecart) {
 			return CHEST_DESTINATION;
 		} else if (minecart instanceof PoweredMinecart) {
@@ -245,14 +239,8 @@ public final class PdxTrackRouter extends JavaPlugin {
 	 * @param player Player in the cart or null for empty carts
 	 * @return The label of the preferred destination if found, default otherwise
 	 */
-	private String playerToDestination(final Player player) {
-		String destination = playerTargets.get(player.getName());
-
-		if (destination == null) {
-			destination = DEFAULT_DESTINATION;
-		}
-
-		return destination;
+	private String entityToDestination(final Entity entity) {
+		return entity.getMetadata(TRACKROUTER_DESTINATION).get(0).asString();
 	}
 
 	/**
@@ -261,8 +249,8 @@ public final class PdxTrackRouter extends JavaPlugin {
 	 * @param verbose Send player a message even if no destination was set
 	 */
 	public void clearPlayerDestination(final Player player, final boolean verbose) {
-		if (playerTargets.containsKey(player.getName())) {
-			playerTargets.remove(player.getName());
+		if (entityHasDestination(player)) {
+			clearEntityDestination(player);
 			player.sendMessage(ChatColor.GREEN + "Destination cleared");
 		} else if (verbose) {
 			player.sendMessage(ChatColor.RED + "No destination set");
@@ -277,7 +265,7 @@ public final class PdxTrackRouter extends JavaPlugin {
 	public void setPlayerDestination(final Player player, final String destination) {
 		final String uncolored = ChatColor.stripColor(destination);
 		final String normalized = normalizeDestination(uncolored);
-		playerTargets.put(player.getName(), normalized);
+		setEntityDestination(player, normalized);
 		player.sendMessage(ChatColor.GREEN + "Destination set to "
 				+ ChatColor.YELLOW + uncolored);
 	}
@@ -322,12 +310,19 @@ public final class PdxTrackRouter extends JavaPlugin {
 	 * @param player Player whose preference should be used
 	 * @param entityId Entity to copy the preference to
 	 */
-	public void transferDestination(final Player player, final int entityId) {
-		final String destination = playerToDestination(player);
-		player.sendMessage(ChatColor.GREEN
-				+ "Transfering destination preference " + ChatColor.YELLOW
-				+ destination + ChatColor.GREEN + " to minecart");
-		setEntityDestination(entityId, destination);
+	public void transferDestination(final Player player, final Entity entity) {
+
+		if (entityHasDestination(player)) {
+			final String destination = entityToDestination(player);
+			player.sendMessage(ChatColor.GREEN
+					+ "Transfering destination preference " + ChatColor.YELLOW
+					+ destination + ChatColor.GREEN + " to minecart");
+			setEntityDestination(entity, destination);
+		} else {
+			player.sendMessage(ChatColor.GREEN
+					+ "Clearing destination preference on minecart");
+			clearEntityDestination(entity);
+		}
 	}
 
 	/**
@@ -335,16 +330,21 @@ public final class PdxTrackRouter extends JavaPlugin {
 	 * @param entityId Identity of the cart
 	 * @param destination Destination preference
 	 */
-	private void setEntityDestination(final int entityId, final String destination) {
-		playerTargets.put(Integer.toString(entityId), destination);
+	private void setEntityDestination(final Entity entity, final String destination) {
+		entity.setMetadata(TRACKROUTER_DESTINATION, new FixedMetadataValue(this, destination));
 	}
 
 	/**
 	 * Clear the destination preference for a cart without a player
 	 * @param entityId Identity of the cart
 	 */
-	public void clearEntityDestination(int entityId) {
-		playerTargets.remove(Integer.toString(entityId));
+	public void clearEntityDestination(final Entity entity) {
+		entity.removeMetadata(TRACKROUTER_DESTINATION, this);
+	}
+
+
+	public boolean entityHasDestination(final Entity entity) {
+		return entity.hasMetadata(TRACKROUTER_DESTINATION);
 	}
 
 	public static boolean isJunctionHeader(final String line) {

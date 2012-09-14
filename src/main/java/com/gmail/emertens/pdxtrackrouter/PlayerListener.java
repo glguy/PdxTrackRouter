@@ -96,7 +96,7 @@ public final class PlayerListener implements Listener {
 		if (PdxTrackRouter.playerCanUseTransferTool(player)) {
 			final Minecart minecart = (Minecart) entity;
 			minecart.setSlowWhenEmpty(false);
-			plugin.transferDestination(player, entity.getEntityId());
+			plugin.transferDestination(player, entity);
 			event.setCancelled(true);
 		}
 	}
