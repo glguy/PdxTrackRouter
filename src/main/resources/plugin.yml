@@ -1,6 +1,6 @@
 name: PdxTrackRouter
 main: com.gmail.emertens.pdxtrackrouter.PdxTrackRouter
-version: 0.6
+version: 0.7
 description: Automatically route minecarts down tracks. 
 author: glguy
 load: POSTWORLD
