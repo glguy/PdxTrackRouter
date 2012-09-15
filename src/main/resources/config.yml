@@ -1,0 +1,12 @@
+chest-transfer:
+  enabled: true
+  load-material: GOLD_BLOCK
+  unload-material: DIAMOND_BLOCK
+
+default-destinations:
+  default: default
+  chest: chest
+  powered: engine
+  empty: empty
+
+transfer-tool: SIGN

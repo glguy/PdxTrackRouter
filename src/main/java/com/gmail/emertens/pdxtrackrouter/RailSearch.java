@@ -13,7 +13,6 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.material.MaterialData;
 import org.bukkit.material.Rails;
-import org.bukkit.plugin.Plugin;
 
 final class RailVector {
 	private final Block block;
@@ -123,7 +122,7 @@ public final class RailSearch {
 	private final Set<String> result = new HashSet<String>();
 	private final Set<RailVector> visited = new HashSet<RailVector>();
 	private final Queue<BlockFace> faces = new LinkedList<BlockFace>();
-	private final Plugin plugin;
+	private final PdxTrackRouter plugin;
 
 	/**
 	 * Direction that the current search left the firstBlock in
@@ -141,7 +140,7 @@ public final class RailSearch {
 	 * @param player Player to notify with search results
 	 * @param plugin Plugin used to schedule delayed computations with.
 	 */
-	private RailSearch(Block block, Player player, Plugin plugin) {
+	private RailSearch(Block block, Player player, PdxTrackRouter plugin) {
 		this.firstBlock = block;
 		this.player = player;
 		this.plugin = plugin;
@@ -185,8 +184,8 @@ public final class RailSearch {
 				newDirection = cursor.getExitDirection();
 			} else {
 				recordDestinations(junction);
-				newDirection = PdxTrackRouter.findDestination(
-						PdxTrackRouter.DEFAULT_DESTINATION,
+				newDirection = plugin.findDestination(
+						plugin.DEFAULT_DESTINATION,
 						junction.getLines(), cursor.getTravelDirection());
 			}
 
@@ -232,7 +231,7 @@ public final class RailSearch {
 			final String[] parts = PdxTrackRouter.normalizeDestination(s).split(":");
 			if (parts.length == 2) {
 				if (BlockFaceUtils.charToDirection(parts[1]) != backward
-						&& !parts[0].equals(PdxTrackRouter.DEFAULT_DESTINATION)) {
+						&& !parts[0].equals(plugin.DEFAULT_DESTINATION)) {
 					result.add(parts[0]);
 				}
 			}
@@ -275,7 +274,7 @@ public final class RailSearch {
 	 * @param player Player to report to
 	 * @param plugin Plugin to schedule delayed computation with
 	 */
-	public static void findRoute(Block block, Player player, Plugin plugin) {
+	public static void findRoute(Block block, Player player, PdxTrackRouter plugin) {
 
 		final RailSearch task = new RailSearch(block, player, plugin);
 		task.step();

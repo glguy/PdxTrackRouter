@@ -10,6 +10,7 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Minecart;
 import org.bukkit.entity.Player;
@@ -34,14 +35,17 @@ import com.gmail.emertens.pdxtrackrouter.listeners.VehicleMoveBlockListener;
  */
 public final class PdxTrackRouter extends JavaPlugin {
 
-	private static final Material UNLOAD_TRIGGER_BLOCK = Material.GOLD_BLOCK;
-	private static final Material LOAD_TRIGGER_BLOCK = Material.DIAMOND_BLOCK;
+	private Material UNLOAD_TRIGGER_BLOCK;
+	private Material LOAD_TRIGGER_BLOCK;
+	public String DEFAULT_DESTINATION;
+	private String EMPTY_DESTINATION;
+	private String CHEST_DESTINATION;
+	private String ENGINE_DESTINATION;
+	private boolean chestTransferEnabled;
+	private Material transferTool;
 
 	private static final String TRACKROUTER_DESTINATION = "trackrouter.destination";
-	public static final String DEFAULT_DESTINATION = "default";
-	public static final String EMPTY_DESTINATION = "empty";
-	public static final String CHEST_DESTINATION = "chest";
-	public static final String ENGINE_DESTINATION = "engine";
+
 	private static final String DESTINATION_HEADER = "[destination]";
 	private static final String JUNCTION_HEADER = "[junction]";
 
@@ -53,6 +57,9 @@ public final class PdxTrackRouter extends JavaPlugin {
 	public void onEnable() {
 		final PluginManager pm = getServer().getPluginManager();
 
+		saveDefaultConfig();
+
+		loadConfigurables();
 		// TrackListener needs VehicleMoveBlockEvents
 		final Listener moveBlockListener = new VehicleMoveBlockListener();
 		pm.registerEvents(moveBlockListener, this);
@@ -61,12 +68,29 @@ public final class PdxTrackRouter extends JavaPlugin {
 		final Listener trackListener = new TrackListener(this);
 		pm.registerEvents(trackListener, this);
 
-		final Listener chestTransferListener = new ChestTransferListener(LOAD_TRIGGER_BLOCK, UNLOAD_TRIGGER_BLOCK);
-		pm.registerEvents(chestTransferListener, this);
+		if (chestTransferEnabled) {
+			final Listener chestTransferListener = new ChestTransferListener(LOAD_TRIGGER_BLOCK, UNLOAD_TRIGGER_BLOCK);
+			pm.registerEvents(chestTransferListener, this);
+		}
 
 		// Listen for player events
-		final Listener playerListener = new PlayerListener(this);
+		final Listener playerListener = new PlayerListener(this, transferTool);
 		pm.registerEvents(playerListener, this);
+	}
+
+	private void loadConfigurables() {
+		final FileConfiguration c = getConfig();
+
+		chestTransferEnabled = c.getBoolean("chest-transfer.enabled");
+		LOAD_TRIGGER_BLOCK = Material.matchMaterial(c.getString("chest-transfer.load-material"));
+		UNLOAD_TRIGGER_BLOCK = Material.matchMaterial(c.getString("chest-transfer.unload-material"));
+
+		DEFAULT_DESTINATION = c.getString("default-destinations.default");
+		EMPTY_DESTINATION = c.getString("default-destinations.empty");
+		CHEST_DESTINATION = c.getString("default-destinations.chest");
+		ENGINE_DESTINATION = c.getString("default-destinations.engine");
+
+		transferTool = Material.matchMaterial(c.getString("transfer-tool"));
 	}
 
 	@Override
@@ -182,7 +206,7 @@ public final class PdxTrackRouter extends JavaPlugin {
 	 * @param direction
 	 * @return first matching direction or first default direction
 	 */
-	public static BlockFace findDestination(final String destination, final Collection<String> lines, final BlockFace direction) {
+	public BlockFace findDestination(final String destination, final Collection<String> lines, final BlockFace direction) {
 		final String prefix = normalizeDestination(destination) + ":";
 		final String defaultPrefix = DEFAULT_DESTINATION + ":";
 

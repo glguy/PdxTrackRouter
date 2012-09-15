@@ -27,10 +27,11 @@ import com.gmail.emertens.pdxtrackrouter.PdxTrackRouter;
 public final class PlayerListener implements Listener {
 
 	private final PdxTrackRouter plugin;
-	private static final Material TRANSFER_TOOL = Material.SIGN;
+	private final Material TRANSFER_TOOL;
 
-	public PlayerListener(final PdxTrackRouter p) {
+	public PlayerListener(final PdxTrackRouter p, final Material transferTool) {
 		plugin = p;
+		this.TRANSFER_TOOL = transferTool;
 	}
 
 	/**
