@@ -364,8 +364,9 @@ public final class PdxTrackRouter extends JavaPlugin {
 	 * report the effect to the player.
 	 * @param player Player whose preference should be used
 	 * @param entityId Entity to copy the preference to
+	 * @return true when destination set, false when cleared
 	 */
-	public void transferDestination(final Player player, final Entity entity) {
+	public boolean transferDestination(final Player player, final Entity entity) {
 
 		if (entityHasDestination(player)) {
 			final String destination = entityToDestination(player);
@@ -373,10 +374,12 @@ public final class PdxTrackRouter extends JavaPlugin {
 					+ "Transfering destination preference " + ChatColor.YELLOW
 					+ destination + ChatColor.GREEN + " to minecart");
 			setEntityDestination(entity, destination);
+			return true;
 		} else {
 			player.sendMessage(ChatColor.GREEN
 					+ "Clearing destination preference on minecart");
 			clearEntityDestination(entity);
+			return false;
 		}
 	}
 
