@@ -1,4 +1,4 @@
-package com.gmail.emertens.pdxtrackrouter;
+package com.gmail.emertens.pdxtrackrouter.listeners;
 
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -10,7 +10,11 @@ import org.bukkit.entity.Vehicle;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.vehicle.VehicleExitEvent;
-import org.bukkit.event.vehicle.VehicleMoveEvent;
+
+import com.gmail.emertens.pdxtrackrouter.Junction;
+import com.gmail.emertens.pdxtrackrouter.PdxTrackRouter;
+import com.gmail.emertens.pdxtrackrouter.RailSearch;
+import com.gmail.emertens.pdxtrackrouter.events.VehicleMoveBlockEvent;
 
 /**
  * This listener catches vehicle move events which correspond arriving at a
@@ -43,24 +47,17 @@ public final class TrackListener implements Listener {
 	 * @param event
 	 */
 	@EventHandler(ignoreCancelled = true)
-	public void onVehicleMove(VehicleMoveEvent event) {
-
-		final Block from = event.getFrom().getBlock();
-		final Block to = event.getTo().getBlock();
-		final BlockFace currentDirection = from.getFace(to);
-
-		// Handle the common case early
-		if (currentDirection == BlockFace.SELF || currentDirection == null) {
-			return;
-		}
-
+	public void onVehicleMove(VehicleMoveBlockEvent event) {
+		final Block to = event.getBlock();
+		final BlockFace currentDirection = event.getDirection();
 		final Vehicle vehicle = event.getVehicle();
+
 		if (!(vehicle instanceof Minecart)) {
 			return;
 		}
 
 		// Figure out where the minecart is likely to go next
-		final BlockFace nextDirection = RailSearch.computeNextRail(from, to, currentDirection);
+		final BlockFace nextDirection = RailSearch.computeNextRail(to, currentDirection);
 		if (nextDirection == null) {
 			return;
 		}

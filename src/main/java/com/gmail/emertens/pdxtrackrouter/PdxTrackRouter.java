@@ -3,6 +3,7 @@ package com.gmail.emertens.pdxtrackrouter;
 import java.util.Collection;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
@@ -19,6 +20,11 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.gmail.emertens.pdxtrackrouter.listeners.ChestTransferListener;
+import com.gmail.emertens.pdxtrackrouter.listeners.PlayerListener;
+import com.gmail.emertens.pdxtrackrouter.listeners.TrackListener;
+import com.gmail.emertens.pdxtrackrouter.listeners.VehicleMoveBlockListener;
+
 /**
  * This class implements the logic for a player to express a desired
  * destination and to update junction track blocks to get the player
@@ -27,6 +33,9 @@ import org.bukkit.plugin.java.JavaPlugin;
  * @author Eric Mertens
  */
 public final class PdxTrackRouter extends JavaPlugin {
+
+	private static final Material UNLOAD_TRIGGER_BLOCK = Material.GOLD_BLOCK;
+	private static final Material LOAD_TRIGGER_BLOCK = Material.DIAMOND_BLOCK;
 
 	private static final String TRACKROUTER_DESTINATION = "trackrouter.destination";
 	public static final String DEFAULT_DESTINATION = "default";
@@ -44,12 +53,19 @@ public final class PdxTrackRouter extends JavaPlugin {
 	public void onEnable() {
 		final PluginManager pm = getServer().getPluginManager();
 
+		// TrackListener needs VehicleMoveBlockEvents
+		final Listener moveBlockListener = new VehicleMoveBlockListener();
+		pm.registerEvents(moveBlockListener, this);
+
 		// Listen for mine cart events
-		Listener trackListener = new TrackListener(this);
+		final Listener trackListener = new TrackListener(this);
 		pm.registerEvents(trackListener, this);
 
+		final Listener chestTransferListener = new ChestTransferListener(LOAD_TRIGGER_BLOCK, UNLOAD_TRIGGER_BLOCK);
+		pm.registerEvents(chestTransferListener, this);
+
 		// Listen for player events
-		Listener playerListener = new PlayerListener(this);
+		final Listener playerListener = new PlayerListener(this);
 		pm.registerEvents(playerListener, this);
 	}
 

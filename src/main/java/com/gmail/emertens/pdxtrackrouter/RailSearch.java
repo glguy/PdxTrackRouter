@@ -289,14 +289,13 @@ public final class RailSearch {
 	 * @param traveling Direction player traveled to to block
 	 * @return the direction player will leave to block, if possible, null otherwise
 	 */
-	public static BlockFace computeNextRail(Block from, Block to,
-			BlockFace traveling) {
+	public static BlockFace computeNextRail(Block to, BlockFace traveling) {
 
 		final BlockFace toDir;
 
 		switch (traveling) {
 		case UP:
-			return Junction.railDirection(from);
+			return Junction.railDirection(to.getRelative(BlockFace.DOWN));
 		case DOWN:
 			toDir = Junction.railDirection(to);
 			// If we are falling out of the sky guess we will continue to

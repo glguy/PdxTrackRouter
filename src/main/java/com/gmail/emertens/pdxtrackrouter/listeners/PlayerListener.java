@@ -1,4 +1,4 @@
-package com.gmail.emertens.pdxtrackrouter;
+package com.gmail.emertens.pdxtrackrouter.listeners;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -15,6 +15,8 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+
+import com.gmail.emertens.pdxtrackrouter.PdxTrackRouter;
 
 /**
  * This listener watches for operations on destination signs,
