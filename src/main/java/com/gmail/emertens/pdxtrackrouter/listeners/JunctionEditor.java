@@ -14,10 +14,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
-
 import com.gmail.emertens.pdxtrackrouter.PdxTrackRouter;
+import com.gmail.emertens.pdxtrackrouter.events.PlayerUseCommandSign;
 
 @SuppressWarnings("serial")
 final class JunctionEditException extends Exception {
@@ -206,18 +204,11 @@ public final class JunctionEditor implements CommandExecutor, Listener {
 	}
 	
 	@EventHandler(ignoreCancelled = true)
-	public void onPlayerInteract(PlayerInteractEvent event) {
-		
-		if (event.getAction() != Action.RIGHT_CLICK_BLOCK) {
-			return;
-		}
-		
-		final Block clickedBlock = event.getClickedBlock();
-		
-		if (checkJunctionBlock(clickedBlock)) {
+	public void onPlayerUseCommandSign(PlayerUseCommandSign event) {
+		if (PdxTrackRouter.isJunctionHeader(event.getSign().getLine(0))) {
 			final Player player = event.getPlayer();
 			if (PdxTrackRouter.playerCanEditJunctions(player)) {
-				selectBlock(player, clickedBlock);
+				selectBlock(player, event.getBlock());
 			}
 		}
 	}

@@ -22,6 +22,7 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.gmail.emertens.pdxtrackrouter.listeners.ChestTransferListener;
+import com.gmail.emertens.pdxtrackrouter.listeners.CommandSignListener;
 import com.gmail.emertens.pdxtrackrouter.listeners.JunctionEditor;
 import com.gmail.emertens.pdxtrackrouter.listeners.PlayerListener;
 import com.gmail.emertens.pdxtrackrouter.listeners.TrackListener;
@@ -64,6 +65,9 @@ public final class PdxTrackRouter extends JavaPlugin {
 		// TrackListener needs VehicleMoveBlockEvents
 		final Listener moveBlockListener = new VehicleMoveBlockListener();
 		pm.registerEvents(moveBlockListener, this);
+		
+		final Listener commandSigns = new CommandSignListener();
+		pm.registerEvents(commandSigns, this);
 
 		// Listen for mine cart events
 		final Listener trackListener = new TrackListener(this);

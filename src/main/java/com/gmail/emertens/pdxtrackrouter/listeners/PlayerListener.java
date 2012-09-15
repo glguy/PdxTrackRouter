@@ -10,13 +10,11 @@ import org.bukkit.entity.Minecart;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-
 import com.gmail.emertens.pdxtrackrouter.PdxTrackRouter;
+import com.gmail.emertens.pdxtrackrouter.events.PlayerUseCommandSign;
 
 /**
  * This listener watches for operations on destination signs,
@@ -56,23 +54,14 @@ public final class PlayerListener implements Listener {
 	 * @param event
 	 */
 	@EventHandler(ignoreCancelled = true)
-	public void onPlayerInteract(final PlayerInteractEvent event) {
-
-		if (event.getAction() != Action.RIGHT_CLICK_BLOCK) {
-			return;
-		}
-
-		final BlockState state = event.getClickedBlock().getState();
-		if (state instanceof Sign) {
-			final Sign sign = (Sign)state;
-
-			if (PdxTrackRouter.isDestinationHeader(sign.getLine(0))) {
-				final Player player = event.getPlayer();
-				if (PdxTrackRouter.playerCanUseDestinations(player)) {
-					plugin.setPlayerDestination(event.getPlayer(), sign.getLine(1));
-				} else {
-					player.sendMessage(ChatColor.RED + "Permission denied");
-				}
+	public void onPlayerUseCommandSign(final PlayerUseCommandSign event) {
+		final Sign sign = event.getSign();
+		if (PdxTrackRouter.isDestinationHeader(sign.getLine(0))) {
+			final Player player = event.getPlayer();
+			if (PdxTrackRouter.playerCanUseDestinations(player)) {
+				plugin.setPlayerDestination(player, sign.getLine(1));
+			} else {
+				player.sendMessage(ChatColor.RED + "Permission denied");
 			}
 		}
 	}
