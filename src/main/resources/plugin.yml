@@ -19,6 +19,10 @@ commands:
     description: Compute the junctions visible along the track
     permission: trackrouter.junctions
     usage: /<command>
+  junction:
+    description: Edit junction signs in place
+    permission: trackrouter.sign.junction.edit
+    usage: "/<command> {insert,delete,change} # TEXT"
 
 permissions:
   trackrouter.changesign:
@@ -33,6 +37,9 @@ permissions:
   trackrouter.sign.junction.create:
     description: Create new junction signs
     default: true
+  trackrouter.sign.junction.edit:
+    description: Edit junction signs
+    default: op
   trackrouter.sign.destination.create:
     description: Create new destination signs
     default: true

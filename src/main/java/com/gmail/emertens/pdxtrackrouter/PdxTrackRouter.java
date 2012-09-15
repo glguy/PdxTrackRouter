@@ -22,6 +22,7 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.gmail.emertens.pdxtrackrouter.listeners.ChestTransferListener;
+import com.gmail.emertens.pdxtrackrouter.listeners.JunctionEditor;
 import com.gmail.emertens.pdxtrackrouter.listeners.PlayerListener;
 import com.gmail.emertens.pdxtrackrouter.listeners.TrackListener;
 import com.gmail.emertens.pdxtrackrouter.listeners.VehicleMoveBlockListener;
@@ -76,6 +77,12 @@ public final class PdxTrackRouter extends JavaPlugin {
 		// Listen for player events
 		final Listener playerListener = new PlayerListener(this, transferTool);
 		pm.registerEvents(playerListener, this);
+		
+		// Install the junction editor
+		final JunctionEditor junctionEditor = new JunctionEditor();
+		pm.registerEvents(junctionEditor, this);
+		getCommand("junction").setExecutor(junctionEditor);
+		
 	}
 
 	private void loadConfigurables() {
@@ -405,6 +412,10 @@ public final class PdxTrackRouter extends JavaPlugin {
 
 	public static boolean playerCanCreateJunctions(Player player) {
 		return player.hasPermission("trackrouter.sign.junction.create");
+	}
+	
+	public static boolean playerCanEditJunctions(Player player) {
+		return player.hasPermission("trackrouter.sign.junction.edit");
 	}
 
 	public static boolean playerCanUseDestinations(Player player) {
