@@ -14,7 +14,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import com.gmail.emertens.pdxtrackrouter.PdxTrackRouter;
-import com.gmail.emertens.pdxtrackrouter.events.PlayerUseCommandSign;
+import com.gmail.emertens.pdxtrackrouter.events.PlayerUseCommandSignEvent;
 
 /**
  * This listener watches for operations on destination signs,
@@ -54,7 +54,7 @@ public final class PlayerListener implements Listener {
 	 * @param event
 	 */
 	@EventHandler(ignoreCancelled = true)
-	public void onPlayerUseCommandSign(final PlayerUseCommandSign event) {
+	public void onPlayerUseCommandSign(final PlayerUseCommandSignEvent event) {
 		final Sign sign = event.getSign();
 		if (PdxTrackRouter.isDestinationHeader(sign.getLine(0))) {
 			final Player player = event.getPlayer();

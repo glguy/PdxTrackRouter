@@ -15,6 +15,12 @@ import org.bukkit.inventory.ItemStack;
 import com.gmail.emertens.pdxtrackrouter.BlockFaceUtils;
 import com.gmail.emertens.pdxtrackrouter.events.VehicleMoveBlockEvent;
 
+/**
+ * This class implements storage cart transfers to chests when
+ * a cart passes over specially designated blocks.
+ * @author Eric Mertens
+ *
+ */
 public final class ChestTransferListener implements Listener {
 
 	private final Material UNLOAD_TRIGGER_BLOCK;
@@ -32,15 +38,14 @@ public final class ChestTransferListener implements Listener {
 
 	@EventHandler(ignoreCancelled = true)
 	public void onVehicleMove(final VehicleMoveBlockEvent event) {
-		final Block to = event.getBlock();
+
 		final Vehicle vehicle = event.getVehicle();
-
-		if (vehicle instanceof StorageMinecart) {
-			storageCartMove((StorageMinecart) vehicle, to);
+		if (!(vehicle instanceof StorageMinecart)) {
+			return;
 		}
-	}
+		final StorageMinecart cart = (StorageMinecart) vehicle;
 
-	public void storageCartMove(final StorageMinecart cart, final Block block) {
+		final Block block = event.getBlock();
 		final Block under = block.getRelative(BlockFace.DOWN);
 		final Material underType = under.getType();
 		final boolean loadCart;
@@ -83,8 +88,7 @@ public final class ChestTransferListener implements Listener {
 		for (int slot = 0; slot < slots; slot++) {
 			final ItemStack x = source.getItem(slot);
 			if (x != null) {
-				final ItemStack remainder = target.addItem(x).get(0);
-				source.setItem(slot, remainder);
+				source.setItem(slot, target.addItem(x).get(0));
 			}
 		}
 	}

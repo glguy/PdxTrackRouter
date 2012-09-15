@@ -12,6 +12,11 @@ import org.bukkit.plugin.PluginManager;
 
 import com.gmail.emertens.pdxtrackrouter.events.VehicleMoveBlockEvent;
 
+/**
+ * The listener generates {@link VehicleMoveBlockEvent} events.
+ * @author Eric Mertens
+ *
+ */
 public final class VehicleMoveBlockListener implements Listener {
 	private final PluginManager pluginManager = Bukkit.getServer().getPluginManager();
 
@@ -27,7 +32,6 @@ public final class VehicleMoveBlockListener implements Listener {
 		}
 
 		final Vehicle vehicle = event.getVehicle();
-
 		final Event subevent = new VehicleMoveBlockEvent(to, direction, vehicle);
 		pluginManager.callEvent(subevent);
 	}

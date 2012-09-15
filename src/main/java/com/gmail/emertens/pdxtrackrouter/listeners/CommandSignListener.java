@@ -9,9 +9,13 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 
-import com.gmail.emertens.pdxtrackrouter.events.PlayerUseCommandSign;
+import com.gmail.emertens.pdxtrackrouter.events.PlayerUseCommandSignEvent;
 
-public class CommandSignListener implements Listener {
+/**
+ * This listener generates {@link PlayerUseCommandSignEvent} events.
+ * @author Eric Mertens
+ */
+public final class CommandSignListener implements Listener {
 
 	@EventHandler(ignoreCancelled = true)
 	public void onPlayerInteract(PlayerInteractEvent event) {
@@ -24,7 +28,7 @@ public class CommandSignListener implements Listener {
 		if (state instanceof Sign) {
 			final Sign sign = (Sign)state;
 
-			PlayerUseCommandSign subevent = new PlayerUseCommandSign(event.getPlayer(), block, sign);
+			PlayerUseCommandSignEvent subevent = new PlayerUseCommandSignEvent(event.getPlayer(), block, sign);
 			Bukkit.getServer().getPluginManager().callEvent(subevent);
 			event.setCancelled(subevent.isCancelled());
 		}
