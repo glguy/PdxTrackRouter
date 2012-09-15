@@ -20,6 +20,11 @@ public final class ChestTransferListener implements Listener {
 	private final Material UNLOAD_TRIGGER_BLOCK;
 	private final Material LOAD_TRIGGER_BLOCK;
 
+	/**
+	 * Construct a new ChestTransferListener using the given tigger materials.
+	 * @param loadTrigger Material which triggers chest load behavior
+	 * @param unloadTrigger Material which triggers chest unload behavior
+	 */
 	public ChestTransferListener(final Material loadTrigger, final Material unloadTrigger) {
 		UNLOAD_TRIGGER_BLOCK = unloadTrigger;
 		LOAD_TRIGGER_BLOCK = loadTrigger;
@@ -35,7 +40,7 @@ public final class ChestTransferListener implements Listener {
 		}
 	}
 
-	public void storageCartMove(StorageMinecart cart, Block block) {
+	public void storageCartMove(final StorageMinecart cart, final Block block) {
 		final Block under = block.getRelative(BlockFace.DOWN);
 		final Material underType = under.getType();
 		final boolean loadCart;
@@ -73,8 +78,7 @@ public final class ChestTransferListener implements Listener {
 	 * @param source Inventory to remove items from
 	 * @param target Inventory to add items to
 	 */
-	private static void transferInventory(final Inventory source,
-			final Inventory target) {
+	private static void transferInventory(final Inventory source, final Inventory target) {
 		final int slots = source.getSize();
 		for (int slot = 0; slot < slots; slot++) {
 			final ItemStack x = source.getItem(slot);
