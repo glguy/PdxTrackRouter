@@ -204,6 +204,8 @@ public final class JunctionEditor implements CommandExecutor, Listener {
 		for (int i = start; i < args.length; i++) {
 			if (!first) {
 				builder.append(' ');
+			} else {
+				first = false;
 			}
 			builder.append(args[i]);
 		}
