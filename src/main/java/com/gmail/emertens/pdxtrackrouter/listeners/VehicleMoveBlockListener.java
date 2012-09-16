@@ -1,6 +1,7 @@
 package com.gmail.emertens.pdxtrackrouter.listeners;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Vehicle;
@@ -22,12 +23,21 @@ public final class VehicleMoveBlockListener implements Listener {
 
 	@EventHandler
 	public void onVehicleMoveEvent(final VehicleMoveEvent event) {
-		final Block from = event.getFrom().getBlock();
-		final Block to = event.getTo().getBlock();
+
+		final Location fromLocation = event.getFrom();
+		final Location toLocation   = event.getTo();
+
+		if (fromLocation.getBlockX() == toLocation.getBlockX()
+				&& fromLocation.getBlockY() == toLocation.getBlockY()
+				&& fromLocation.getBlockZ() == toLocation.getBlockZ()) {
+			return;
+		}
+
+		final Block from = fromLocation.getBlock();
+		final Block to = toLocation.getBlock();
 		final BlockFace direction = from.getFace(to);
 
-		// Handle the common case early
-		if (direction == BlockFace.SELF || direction == null) {
+		if (direction == null) {
 			return;
 		}
 

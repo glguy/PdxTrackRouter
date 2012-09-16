@@ -256,9 +256,10 @@ public final class Junction {
 
 	private static boolean isConnectedRail(final Block b, final BlockFace dir) {
 		final BlockFace blockDir = railDirection(b);
-		return blockDir == dir
-				|| blockDir == BlockFaceUtils.opposite(dir)
-				|| blockDir == BlockFaceUtils.turnFortyFiveDegreesCCW(dir)
-				|| blockDir == BlockFaceUtils.turnFortyFiveDegreesCW(dir);
+		return blockDir != null // shortcut for non-rails
+				&& (blockDir == dir
+				 || blockDir == BlockFaceUtils.opposite(dir)
+				 || blockDir == BlockFaceUtils.turnFortyFiveDegreesCCW(dir)
+				 || blockDir == BlockFaceUtils.turnFortyFiveDegreesCW(dir));
 	}
 }
