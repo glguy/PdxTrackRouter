@@ -8,7 +8,7 @@ import org.bukkit.block.BlockFace;
  * @author Eric Mertens
  */
 public final class BlockFaceUtils {
-
+	
 	/**
 	 * The cardinal directions are north, east, south, and west.
 	 */
@@ -32,13 +32,13 @@ public final class BlockFaceUtils {
 		}
 		switch (Character.toUpperCase(c.charAt(0))) {
 		case 'S':
-		case '0': return BlockFace.WEST;
+		case '0': return BlockFace.SOUTH;
 		case 'W':
-		case '1': return BlockFace.NORTH;
+		case '1': return BlockFace.WEST;
 		case 'N':
-		case '2': return BlockFace.EAST;
+		case '2': return BlockFace.NORTH;
 		case 'E':
-		case '3': return BlockFace.SOUTH;
+		case '3': return BlockFace.EAST;
 		default: return null;
 		}
 	}
