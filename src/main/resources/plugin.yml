@@ -1,6 +1,6 @@
 name: PdxTrackRouter
 main: com.gmail.emertens.pdxtrackrouter.PdxTrackRouter
-version: 0.8
+version: 0.9
 description: Automatically route minecarts down tracks. 
 author: glguy
 load: POSTWORLD
@@ -22,7 +22,7 @@ commands:
   junction:
     description: Edit junction signs in place
     permission: trackrouter.sign.junction.edit
-    usage: "/<command> {insert,delete,change} # TEXT"
+    usage: "/<command> {insert,delete,change,list} # TEXT"
 
 permissions:
   trackrouter.changesign:

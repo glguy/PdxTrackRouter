@@ -1,9 +1,11 @@
 package com.gmail.emertens.pdxtrackrouter.listeners;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
@@ -14,7 +16,10 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
 
+import com.gmail.emertens.pdxtrackrouter.Junction;
 import com.gmail.emertens.pdxtrackrouter.PdxTrackRouter;
 import com.gmail.emertens.pdxtrackrouter.events.PlayerUseCommandSignEvent;
 
@@ -69,14 +74,19 @@ public final class JunctionEditor implements CommandExecutor, Listener {
 
 		// Obtain junction block
 		final Block selectedBlock = selectedBlocks.get(player);
-		if (selectedBlock == null || !checkJunctionBlock(selectedBlock)) {
+		if (selectedBlock == null || !Junction.isJunctionBlock(selectedBlock)) {
 			player.sendMessage(ChatColor.RED + "No junction sign selected");
 			return true;
 		}
 
 		try {
 			// Dispatch sub-command
-			if (args.length >= 2) {
+			if (args.length == 1) {
+				if (args[0].equalsIgnoreCase("list")) {
+					listOperation(player, selectedBlock);
+					return true;
+				}
+			} else if (args.length >= 2) {
 				final int index = Integer.parseInt(args[1]);
 				final String text = ChatColor.translateAlternateColorCodes('&', concatenateArgs(args, 2));
 
@@ -101,6 +111,17 @@ public final class JunctionEditor implements CommandExecutor, Listener {
 		} catch (JunctionEditException e) {
 			player.sendMessage(ChatColor.RED + e.getErrorMessage());
 			return true;
+		}
+	}
+
+	private void listOperation(final Player player, final Block selectedBlock) {
+		final Collection<String> lines = Junction.collectJunctionSignLines(selectedBlock);
+		int i = 1;
+
+		player.sendMessage(ChatColor.GREEN + "Junction lines");
+		for (String line : lines) {
+			player.sendMessage(ChatColor.GREEN.toString() + i + ": " + ChatColor.YELLOW + line);
+			i++;
 		}
 	}
 
@@ -222,15 +243,28 @@ public final class JunctionEditor implements CommandExecutor, Listener {
 		}
 	}
 
-	private static boolean checkJunctionBlock(final Block block) {
-		final BlockState state = block.getState();
-		if (state instanceof Sign) {
-			final Sign sign = (Sign) state;
-			if (PdxTrackRouter.isJunctionHeader(sign.getLine(0))) {
-				return true;
-			}
+	@EventHandler(ignoreCancelled = true)
+	public void onPlayerInteract(PlayerInteractEvent event) {
+		if (event.getAction() != Action.RIGHT_CLICK_BLOCK) {
+			return;
 		}
-		return false;
+
+		final Block block = event.getClickedBlock();
+		if (block.getType() != Material.RAILS) {
+			return;
+		}
+
+		final Player player = event.getPlayer();
+		if (!PdxTrackRouter.playerCanEditJunctions(player)) {
+			return;
+		}
+
+		final Junction junction = Junction.makeJunction(block);
+		if (junction == null) {
+			return;
+		}
+
+		selectBlock(player, junction.getTopSign());
 	}
 
 	private void selectBlock(Player player, Block clickedBlock) {
