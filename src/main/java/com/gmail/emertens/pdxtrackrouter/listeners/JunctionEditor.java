@@ -259,6 +259,10 @@ public final class JunctionEditor implements CommandExecutor, Listener {
 			return;
 		}
 
+		if (event.getItem() != null) {
+			return;
+		}
+
 		final Junction junction = Junction.makeJunction(block);
 		if (junction == null) {
 			return;
