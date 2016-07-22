@@ -75,7 +75,7 @@ public final class PlayerListener implements Listener {
 	@EventHandler(ignoreCancelled = true)
 	public void onEntityInteract(final PlayerInteractEntityEvent event) {
 
-		if (event.getPlayer().getItemInHand().getType() != TRANSFER_TOOL) {
+		if (event.getPlayer().getInventory().getItemInMainHand().getType() != TRANSFER_TOOL) {
 			return;
 		}
 
