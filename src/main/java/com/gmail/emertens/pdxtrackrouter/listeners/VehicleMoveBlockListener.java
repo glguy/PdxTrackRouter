@@ -35,7 +35,7 @@ public final class VehicleMoveBlockListener implements Listener {
 
 		final Block from = fromLocation.getBlock();
 		final Block to = toLocation.getBlock();
-		final BlockFace direction = from.getFace(to);
+		final BlockFace direction = calculateTravelingDirection(from, to);
 
 		if (direction == null) {
 			return;
@@ -44,5 +44,50 @@ public final class VehicleMoveBlockListener implements Listener {
 		final Vehicle vehicle = event.getVehicle();
 		final Event subevent = new VehicleMoveBlockEvent(to, direction, vehicle);
 		pluginManager.callEvent(subevent);
+	}
+
+	private static final BlockFace[] FLAT_DIRECTIONS = new BlockFace[] {
+			BlockFace.NORTH,
+			BlockFace.SOUTH,
+			BlockFace.EAST,
+			BlockFace.WEST,
+			BlockFace.NORTH_EAST,
+			BlockFace.NORTH_WEST,
+			BlockFace.SOUTH_EAST,
+			BlockFace.SOUTH_WEST
+	};
+
+	private BlockFace calculateTravelingDirection(Block from, Block to) {
+		int x = 0;
+		if (to.getX() < from.getX()) {
+			x = -1;
+		} else if (to.getX() > from.getX()) {
+			x = 1;
+		}
+
+		int z = 0;
+		if (to.getZ() < from.getZ()) {
+			z = -1;
+		} else if (to.getZ() > from.getZ()) {
+			z = 1;
+		}
+
+		// First attempt to match cardinal and ordinal diretions, ignoring vertical movement
+		for (BlockFace face : FLAT_DIRECTIONS) {
+			if (face.getModX() == x && face.getModZ() == z) {
+				return face;
+			}
+		}
+
+		// If the cart is only moving vertically then resort to UP and DOWN
+		if (to.getY() < from.getY()) {
+			return BlockFace.DOWN;
+		}
+
+		if (to.getY() > from.getY()) {
+			return BlockFace.UP;
+		}
+
+		return null;
 	}
 }
