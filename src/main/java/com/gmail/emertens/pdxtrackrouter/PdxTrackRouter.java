@@ -1,6 +1,7 @@
 package com.gmail.emertens.pdxtrackrouter;
 
 import java.util.Collection;
+import java.util.Set;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -12,10 +13,11 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Minecart;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.PoweredMinecart;
-import org.bukkit.entity.StorageMinecart;
+import org.bukkit.entity.Minecart;
+import org.bukkit.entity.minecart.PoweredMinecart;
+import org.bukkit.entity.minecart.RideableMinecart;
+import org.bukkit.entity.minecart.StorageMinecart;
 import org.bukkit.event.Listener;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.PluginManager;
@@ -165,7 +167,7 @@ public final class PdxTrackRouter extends JavaPlugin {
 			return;
 		}
 
-		final Block block = player.getTargetBlock(null, 10);
+		final Block block = player.getTargetBlock((Set<Material>) null, 10);
 		if (block == null) {
 			player.sendMessage(ChatColor.RED + "No sign in range");
 			return;
@@ -202,7 +204,7 @@ public final class PdxTrackRouter extends JavaPlugin {
 			return CHEST_DESTINATION;
 		} else if (minecart instanceof PoweredMinecart) {
 			return ENGINE_DESTINATION;
-		} else if (minecart instanceof Minecart) {
+		} else if (minecart instanceof RideableMinecart) {
 			return EMPTY_DESTINATION;
 		} else {
 			return DEFAULT_DESTINATION;
